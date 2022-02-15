@@ -5,10 +5,10 @@ import { LinkContainer } from "react-router-bootstrap";
 import ICalParser from 'ical-js-parser';
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 
-import Dashboard from "./components/dashboard";
-import LearningTasks from "./components/learning_tasks";
-import Schedule from "./components/schedule";
-import StudentInfo from "./components/student_info";
+import Dashboard from "./components/dashboard.js";
+import LearningTasks from "./components/learning_tasks.js";
+import Schedule from "./components/schedule.js";
+import StudentInfo from "./components/student_info.js";
 
 export default class App extends React.Component {
     constructor(props) {

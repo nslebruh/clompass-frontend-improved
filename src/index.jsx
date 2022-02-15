@@ -4,7 +4,7 @@ import Paper from '@mui/material/Paper';
 import { ViewState } from '@devexpress/dx-react-scheduler';
 import { Scheduler, WeekView, Toolbar, DateNavigator, Appointments, TodayButton, DayView, MonthView, ViewSwitcher } from '@devexpress/dx-react-scheduler-material-ui';
 import ICalParser from 'ical-js-parser';
-import App from './app';
+import App from './app.js';
 
 class Test extends React.Component {
   constructor(props) {
