@@ -1,4 +1,5 @@
 import React from "react";
+import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Routes, Route, } from "react-router-dom";
 import { Navbar, Nav, Form, Button, Offcanvas, Image, Container, Row, Col, Spinner, Stack } from 'react-bootstrap';
 import { LinkContainer } from "react-router-bootstrap";
