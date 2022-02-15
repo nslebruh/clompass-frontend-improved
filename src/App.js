@@ -17,7 +17,7 @@ export default class App extends React.Component {
             year: '',
             username: '',
             password: '',
-            learning_tasks: false,
+            learning_tasks: true,
             student_info: false,
             update_data_page: false,
             schedule_data: [],
@@ -33,7 +33,7 @@ export default class App extends React.Component {
         if (localStorage.getItem('clompass-data') === null) {   
             localStorage.setItem('clompass-data', '{"learning_tasks":[],"student_info":{},"schedule_url":""}')
         }
-        if (this.state.data.schedule_url !== '') {
+        if (this.state.data.schedule_url !== "") {
             this.fetchSchedule(this.state.data.schedule_url)
         }
         return
@@ -56,9 +56,6 @@ export default class App extends React.Component {
         this.setState({
             schedule_data: d
         })
-
-
-
     }
     parseTime(string) {
         return new Date(
@@ -73,11 +70,12 @@ export default class App extends React.Component {
         ).valueOf();
     }
     fetchApi = async () => {
-        let response = await fetch(`https://clompass-backend.herokuapp.com/puppeteer?learning_tasks=${this.state.learning_tasks}&years=${this.state.year}&student_info=${this.state.student_info}`)
-        response = response.json();
+        let response = await fetch(`http://localhost:3001/puppeteer?username=${this.state.username}&password=${this.state.password}&learning_tasks=${this.state.learning_tasks}&year=${this.state.year}&student_info=${this.state.student_info}`)
+        response = await response.json();
+        console.log(response)
         this.setState({data: {
             ...this.state.data,
-            learning_tasks: response.learning_tasks,
+            learning_tasks: response.learning_tasks[2022],
             Student_info: response.student_info,
         }})
     }
@@ -91,8 +89,9 @@ export default class App extends React.Component {
         data.schedule_url = this.state.data.schedule_url
         localStorage.setItem('clompass-data', JSON.stringify(data))
     }
-    changeTF(state) {
-
+    changeTF(status, state) {
+        let x = status === true ? false : true
+        this.setState({[state]: x})
     }
     navbar() {
         return (
@@ -124,7 +123,6 @@ export default class App extends React.Component {
         </>
         )     
     }
-
     update_data_page() {
         return (
             <>
@@ -148,8 +146,8 @@ export default class App extends React.Component {
                             <Form.Control type='text' placeholder='2022' name="year" id="year" onChange={(event) => this.setState({[event.target.name]: event.target.value})}></Form.Control>
                             <Button onClick={() => this.fetchApi()}>Get API data</Button>
                             <br/>
-                            <Button onClick={() => this.changeTF(this.state.learning_tasks)}>Learning tasks: {this.state.learning_tasks}</Button> 
-                            <Button onClick={() => this.changeTF(this.state.student_info)}>Student info: {this.state.student_info}</Button> 
+                            <Button onClick={() => this.changeTF(this.state.learning_tasks, "learning_tasks")}>Learning tasks: {this.state.learning_tasks}</Button> 
+                            <Button onClick={() => this.changeTF(this.state.student_info, "student_info")}>Student info: {this.state.student_info}</Button> 
                             <Button onClick={() => this.saveData()}>Save new data</Button>
                         </Form>
                     </Offcanvas.Body>
