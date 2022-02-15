@@ -14,6 +14,9 @@ import StudentInfo from "./components/student_info.js";
 export default class App extends React.Component {
     constructor(props) {
         super(props);
+        if (localStorage.getItem('clompass-data') === null) {   
+          localStorage.setItem('clompass-data', '{"learning_tasks":[],"student_info":{},"schedule_url":""}')
+        }
         this.state = {
             year: '',
             username: '',
@@ -31,9 +34,6 @@ export default class App extends React.Component {
     }
     async componentDidMount() {
         console.log("component mounted")
-        if (localStorage.getItem('clompass-data') === null) {   
-            localStorage.setItem('clompass-data', '{"learning_tasks":[],"student_info":{},"schedule_url":""}')
-        }
         if (this.state.data.schedule_url !== "") {
             this.fetchSchedule(this.state.data.schedule_url)
         }
