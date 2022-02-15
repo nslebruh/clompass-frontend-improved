@@ -2,6 +2,10 @@
   "name": "clompass-frontend-improved",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "v14.17.0",
+    "npm": ">=6.14.13"
+  },
   "dependencies": {
     "@devexpress/dx-react-core": "^3.0.0",
     "@devexpress/dx-react-scheduler": "^3.0.0",
