@@ -70,7 +70,7 @@ export default class App extends React.Component {
         ).valueOf();
     }
     fetchApi = async () => {
-        let response = await fetch(`http://localhost:3001/puppeteer?username=${this.state.username}&password=${this.state.password}&learning_tasks=${this.state.learning_tasks}&year=${this.state.year}&student_info=${this.state.student_info}`)
+        let response = await fetch(`http://clompass-backend.herokuapp.com/puppeteer?username=${this.state.username}&password=${this.state.password}&learning_tasks=${this.state.learning_tasks}&year=${this.state.year}&student_info=${this.state.student_info}`)
         response = await response.json();
         console.log(response)
         this.setState({data: {
