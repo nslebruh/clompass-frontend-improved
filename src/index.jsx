@@ -198,21 +198,22 @@ export default class App extends React.Component {
                             <Form.Label>Input new schedule URL</Form.Label>
                             <Form.Control type='text' placeholder='URL' name='new_schedule_url' id='url' onChange={(event) => this.setState({data: {...this.state.data, schedule_url: event.target.value}})}></Form.Control>
                             <Button onClick={() => this.fetchSchedule(this.state.data.schedule_url)}>Get schedule data</Button>
-                            <br/>
-                            <Form.Label>Input Username</Form.Label>
-                            <Form.Control type='text' placeholder='Username' name="username" id='username' onChange={(event) => this.setState({[event.target.name]: event.target.value})}></Form.Control>
-                            <br/>
-                            <Form.Label>Input Password</Form.Label>
-                            <Form.Control type='password' placeholder='Password' name="password" id='password' onChange={(event) => this.setState({[event.target.name]: event.target.value})}></Form.Control>
-                            <br/>
-                            <Form.Label>Input Year</Form.Label>
-                            <Form.Control type='text' placeholder='2022' name="year" id="year" onChange={(event) => this.setState({[event.target.name]: event.target.value})}></Form.Control>
-                            <Button onClick={() => this.fetchApi()}>Get API data</Button>
-                            <br/>
-                            <Button onClick={() => this.changeTF(this.state.learning_tasks, "learning_tasks")}>Learning tasks: {this.state.learning_tasks}</Button> 
-                            <Button onClick={() => this.changeTF(this.state.student_info, "student_info")}>Student info: {this.state.student_info}</Button> 
-                            <Button onClick={() => this.saveData()}>Save new data</Button>
                         </Form>
+                        {/* <Form>
+                                <Form.Label>Input Username</Form.Label>
+                                <Form.Control type='text' placeholder='Username' name="username" id='username' onChange={(event) => this.setState({[event.target.name]: event.target.value})}></Form.Control>
+                                <br/>
+                                <Form.Label>Input Password</Form.Label>
+                                <Form.Control type='password' placeholder='Password' name="password" id='password' onChange={(event) => this.setState({[event.target.name]: event.target.value})}></Form.Control>
+                                <br/>
+                                <Form.Label>Input Year</Form.Label>
+                                <Form.Control type='text' placeholder='2022' name="year" id="year" onChange={(event) => this.setState({[event.target.name]: event.target.value})}></Form.Control>
+                                <Button onClick={() => this.fetchApi()}>Get API data</Button>
+                                <br/>
+                                <Button onClick={() => this.changeTF(this.state.learning_tasks, "learning_tasks")}>Learning tasks: {this.state.learning_tasks}</Button> 
+                                <Button onClick={() => this.changeTF(this.state.student_info, "student_info")}>Student info: {this.state.student_info}</Button> 
+                                <Button onClick={() => this.saveData()}>Save new data</Button>
+                            </Form> */}
                     </Offcanvas.Body>
                 </Offcanvas>
             </>
