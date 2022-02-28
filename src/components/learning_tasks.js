@@ -196,7 +196,6 @@ export default class LearningTasks extends React.Component {
                         </Dropdown.Item>
                     )}
                 </DropdownButton>
-                <Button onClick={() => localStorage.setItem('learning_tasks', tasks)}>Save Learning Tasks to local storage</Button>
                 {tasks.length <= 0 ? "No tasks" : 
                     
                         <ListGroup variant="flush" className="scrollarea">

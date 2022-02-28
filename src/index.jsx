@@ -143,6 +143,7 @@ export default class App extends React.Component {
         data.learning_tasks = this.state.data.learning_tasks
         data.student_info = this.state.data.student_info
         data.schedule_url = this.state.data.schedule_url
+        console.log(JSON.stringify(data))
         localStorage.setItem('clompass-data', JSON.stringify(data))
     }
     changeTF(status, state) {
@@ -199,6 +200,7 @@ export default class App extends React.Component {
                             <Form.Control type='text' placeholder='URL' name='new_schedule_url' id='url' onChange={(event) => this.setState({data: {...this.state.data, schedule_url: event.target.value}})}></Form.Control>
                             <Button onClick={() => this.fetchSchedule(this.state.data.schedule_url)}>Get schedule data</Button>
                         </Form>
+                        <Button onClick={() => this.saveData()}>Save data to local storage</Button>
                         {/* <Form>
                                 <Form.Label>Input Username</Form.Label>
                                 <Form.Control type='text' placeholder='Username' name="username" id='username' onChange={(event) => this.setState({[event.target.name]: event.target.value})}></Form.Control>
