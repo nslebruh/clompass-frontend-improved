@@ -14,6 +14,7 @@ export default class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            learning_tasks_format_data: "",
             year: '',
             username: '',
             password: '',
@@ -70,7 +71,7 @@ export default class App extends React.Component {
         ).valueOf();
     }
     fetchApi = async () => {
-        let response = await fetch(`http://clompass-backend.herokuapp.com/puppeteer?username=${this.state.username}&password=${this.state.password}&learning_tasks=${this.state.learning_tasks}&year=${this.state.year}&student_info=${this.state.student_info}`)
+        let response = await fetch(`http://clompass-backend.herokuapp.com/puppeteer?username=${this.state.username}&password=${this.state.password}&student_info=${this.state.student_info}`)
         response = await response.json();
         console.log(response)
         this.setState({data: {
@@ -93,6 +94,61 @@ export default class App extends React.Component {
         let x = status === true ? false : true
         this.setState({[state]: x})
     }
+
+    formatLearningTasks(body) {
+        let data = [];
+        let responsebody = JSON.parse(body).d.data;
+        for (let i = 0; i < responsebody.length; i++) {
+            let task = responsebody[i];
+            let name = task.name;
+            let subject_name = task.subjectName;
+            let subject_code = task.activityName;
+            let attachments = [];
+            let submissions = [];
+            let description = task.description;
+            let official_due_date = task.dueDateTimestamp;
+            let individual_due_date = task.students[0].dueDateTimestamp;
+            individual_due_date ? individual_due_date = individual_due_date : individual_due_date = official_due_date;
+            let submission_status;
+            let submission_svg_link;
+            if (task.students[0].submissionStatus === 1) {
+                submission_status = "Pending";
+                submission_svg_link = "https://cdn.jsdelivr.net/gh/clompass/clompass@main/public/svg/task-status/pending.svg";
+              } else if (task.students[0].submissionStatus === 2) {
+                submission_status = "Overdue";
+                submission_svg_link = "https://cdn.jsdelivr.net/gh/clompass/clompass@main/public/svg/task-status/overdue.svg";
+              } else if (task.students[0].submissionStatus === 3) {
+                submission_status = "On time";
+                submission_svg_link = "https://cdn.jsdelivr.net/gh/clompass/clompass@main/public/svg/task-status/ontime.svg"
+              } else if (task.students[0].submissionStatus === 4) {
+                submission_status = "Recieved late";
+                submission_svg_link = "https://cdn.jsdelivr.net/gh/clompass/clompass@main/public/svg/task-status/receivedlate.svg";
+              } else {
+                submission_status = "Unknown"
+              }
+            if (task.attachments != null) {
+                for (let j = 0; j < task.attachments.length; j++) {
+                    attachments.push({attachment_name: task.attachments[j].name, attachment_link: "https://lilydaleheights-vic.compass.education/Services/FileAssets.svc/DownloadFile?id=" + task.attachments[j].id + "&originalFileName=" + task.attachments[j].fileName.replace(/ /g, "%20"),});
+                }
+              } else {
+                attachments = "None";
+              }
+            
+            if (task.students[0].submissions != null) {
+              for (let j = 0; j < task.students[0].submissions.length; j++) {
+                    submissions.push({submission_name: task.students[0].submissions[j].fileName, submission_link: "https://lilydaleheights-vic.compass.education/Services/FileDownload/FileRequestHandler?FileDownloadType=2&taskId=" + task.students[0].taskId + "&submissionId=" + task.students[0].submissions[j].id});
+              }
+            }
+            data.push({name: name, subject_name: subject_name, subject_code: subject_code, attachments: attachments, description: description, official_due_date: official_due_date, individual_due_date: individual_due_date, submission_status: submission_status, submissions: submissions, submission_svg_link: submission_svg_link, id: id});
+            id++; 
+        }
+        this.setState({data: {
+            ...this.state.data,
+            learning_tasks: data,
+            }
+        })
+    }
+
     navbar() {
         return (
             <>
@@ -131,6 +187,13 @@ export default class App extends React.Component {
                         <Offcanvas.Title>Update Data</Offcanvas.Title>
                     </Offcanvas.Header>
                     <Offcanvas.Body>
+                        <Form>
+                            <Form.Label>
+                                Input learning tasks response data
+                            </Form.Label>
+                            <Form.Control type="text" placeholder="Data" name="learning_tasks_format_data" onChange={(e) => this.setState({[e.target.name]: e.target.value})}/>
+                            <Button type="button" onClick={() => this.formatLearningTasks(this.state.learning_tasks_format_data)}>Format learning tasks data</Button>
+                        </Form>
                         <Form>
                             <Form.Label>Input new schedule URL</Form.Label>
                             <Form.Control type='text' placeholder='URL' name='new_schedule_url' id='url' onChange={(event) => this.setState({data: {...this.state.data, schedule_url: event.target.value}})}></Form.Control>
