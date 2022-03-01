@@ -321,7 +321,7 @@ export default class LearningTasks extends React.Component {
     }
     renderOverdueTasks = () => {
         let tasks = this.state.data.filter(i => {
-            return i.submission_status === "Overdue"
+            return i.submission_status === "Overdue" 
         })
         return (
             <div>

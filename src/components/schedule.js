@@ -9,21 +9,22 @@ export default class Home extends React.Component {
         this.state = {
             current_date: new Date(),
             data: props.data,
+            onlyDayView: props.onlyDayView,
         };
     }
     render() {
         return (
             <Paper>
-                <h1>Hello World</h1>
-                <Scheduler data={this.state.data}>
+                <Scheduler data={this.state.data} height={this.state.onlyDayView !== "true" ?  "630" : "640"}>
                     <ViewState defaultCurrentDate={this.state.current_date}/>
-                    <WeekView startDayHour={8} endDayHour={16}/>
+                    {this.state.onlyDayView !== "true" ? <WeekView startDayHour={8} endDayHour={16}/> : null}
                     <DayView startDayHour={8} endDayHour={16}/>
-                    <MonthView startDayHour={8} endDayHour={16}/>
+                    {this.state.onlyDayView !== "true" ? <MonthView startDayHour={8} endDayHour={16}/> : null}
+                    
                     <Toolbar />
                     <DateNavigator />
-                    <TodayButton />
-                    <ViewSwitcher />
+                    {this.state.onlyDayView !== "true" ? <TodayButton /> : null}
+                    {this.state.onlyDayView !== "true" ? <ViewSwitcher /> : null}
                     <Appointments />
                 </Scheduler>
             </Paper>

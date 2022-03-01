@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Routes, Route, } from "react-router-dom";
 import { Navbar, Nav, Form, Button, Offcanvas, Image, Container, Row, Col, Spinner, Stack } from 'react-bootstrap';
 import { LinkContainer } from "react-router-bootstrap";
+import "./app.css"
 import ICalParser from 'ical-js-parser';
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 
@@ -25,11 +26,11 @@ export default class App extends React.Component {
             learning_tasks: true,
             student_info: false,
             update_data_page: false,
-            schedule_data: [],
             data: {
                 student_info: JSON.parse(localStorage.getItem('clompass-data')).student_info ? JSON.parse(localStorage.getItem('clompass-data')).student_info : {},
                 learning_tasks: JSON.parse(localStorage.getItem('clompass-data')).learning_tasks ? JSON.parse(localStorage.getItem('clompass-data')).learning_tasks : [],
                 schedule_url: JSON.parse(localStorage.getItem('clompass-data')).schedule_url ? JSON.parse(localStorage.getItem('clompass-data')).schedule_url : '',
+                schedule_data: [],
             },
         };
     }
@@ -76,7 +77,7 @@ export default class App extends React.Component {
               }
             if (task.attachments != null) {
                 for (let j = 0; j < task.attachments.length; j++) {
-                    attachments.push({attachment_name: task.attachments[j].name, attachment_link: "https://lilydaleheights-vic.compass.education/Services/FileAssets.svc/DownloadFile?id=" + task.attachments[j].id + "&originalFileName=" + task.attachments[j].fileName.replace(/ /g, "%20"),});
+                    attachments.push({name: task.attachments[j].name, link: "https://lilydaleheights-vic.compass.education/Services/FileAssets.svc/DownloadFile?id=" + task.attachments[j].id + "&originalFileName=" + task.attachments[j].fileName.replace(/ /g, "%20"),});
                 }
               } else {
                 attachments = "None";
@@ -84,7 +85,7 @@ export default class App extends React.Component {
             
             if (task.students[0].submissions != null) {
               for (let j = 0; j < task.students[0].submissions.length; j++) {
-                    submissions.push({submission_name: task.students[0].submissions[j].fileName, submission_link: "https://lilydaleheights-vic.compass.education/Services/FileDownload/FileRequestHandler?FileDownloadType=2&taskId=" + task.students[0].taskId + "&submissionId=" + task.students[0].submissions[j].id});
+                    submissions.push({name: task.students[0].submissions[j].fileName, link: "https://lilydaleheights-vic.compass.education/Services/FileDownload/FileRequestHandler?FileDownloadType=2&taskId=" + task.students[0].taskId + "&submissionId=" + task.students[0].submissions[j].id});
               }
             }
             data.push({name: name, subject_name: subject_name, subject_code: subject_code, attachments: attachments, description: description, official_due_date: official_due_date, individual_due_date: individual_due_date, submission_status: submission_status, submissions: submissions, submission_svg_link: submission_svg_link, id: id});
@@ -105,12 +106,18 @@ export default class App extends React.Component {
         for (let i = 0; i < ics.events.length; i++) {
           d.push({
             startDate: this.parseTime(ics.events[i].dtstart.value),
+            formattedStart: this.parseTimeString(ics.events[i].dtstart.value),
             endDate: this.parseTime(ics.events[i].dtend.value),
+            formattedEnd: this.parseTimeString(ics.events[i].dtend.value),
             title: ics.events[i].summary + ' - ' + ics.events[i].location + ' - ' + ics.events[i].description.split(' : ')[1],
           })
         }
         this.setState({
-            schedule_data: d
+            data: {
+                ...this.state.data,
+                schedule_data: d
+            }
+                
         })
     }
     parseTime(string) {
@@ -124,6 +131,18 @@ export default class App extends React.Component {
               string.slice(13, 15) + "Z",
             ].join(""),
         ).valueOf();
+    }
+    parseTimeString(string) {
+        return new Date(
+            [
+              string.slice(0, 4) + "-",
+              string.slice(4, 6) + "-",
+              string.slice(6, 8) + "T",
+              string.slice(9, 11) + ":",
+              string.slice(11, 13) + ":",
+              string.slice(13, 15) + "Z",
+            ].join(""),
+        )
     }
     fetchApi = async () => {
         let response = await fetch(`http://clompass-backend.herokuapp.com/puppeteer?username=${this.state.username}&password=${this.state.password}&learning_tasks=${this.state.learning_tasks}&year=${this.state.year}&student_info=${this.state.student_info}`)
@@ -229,10 +248,9 @@ export default class App extends React.Component {
                 <Routes>
                     <Route path="/" element={<Dashboard data={this.state.data} />} />
                     <Route path="/learning-tasks" element={<LearningTasks data={this.state.data.learning_tasks}/>} />
-                    <Route path="/schedule" element={<Schedule data={this.state.schedule_data} />} />
+                    <Route path="/schedule" element={<Schedule data={this.state.data.schedule_data} />} />
                     <Route path="/student" element={<StudentInfo data={this.state.data.student_info}/>} />
                 </Routes>
-            <h1>Hello World</h1>
             </Router>
         )
     }
