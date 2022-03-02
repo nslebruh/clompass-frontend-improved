@@ -147,13 +147,12 @@ export default class App extends React.Component {
         )
     }
     fetchApi = async () => {
-        let response = await fetch(`http://clompass-backend.herokuapp.com/puppeteer?username=${this.state.username}&password=${this.state.password}&learning_tasks=${this.state.learning_tasks}&year=${this.state.year}&student_info=${this.state.student_info}`)
+        let response = await fetch(`https://api.clompass.com/clompass?username=${this.state.username}&password=${this.state.password}`)
         response = await response.json();
         console.log(response)
         this.setState({data: {
             ...this.state.data,
-            learning_tasks: response.learning_tasks[2022],
-            Student_info: response.student_info,
+            learning_tasks: response.response,
         }})
     }
     showOffcanvas() {
@@ -222,6 +221,14 @@ export default class App extends React.Component {
                             <Button onClick={() => this.fetchSchedule(this.state.data.schedule_url)}>Get schedule data</Button>
                         </Form>
                         <Button onClick={() => this.saveData()}>Save data to local storage</Button>
+                        <Form>
+                            <Form.Label>Input Username</Form.Label>
+                            <Form.Control type="text" placeholder="username" name="username" id="username" onChange={(event) => this.setState({[event.target.name]: event.target.value})} />
+                            <br/>
+                            <Form.Label>Input Password</Form.Label>
+                            <Form.Control type="password" placeholder="password" name="password" id="password" onChange={(event) => this.setState({[event.target.name]: event.target.value})} />
+                            <Button type="button" onClick={() => this.fetchApi()} ></Button>
+                        </Form>
                         {/* <Form>
                                 <Form.Label>Input Username</Form.Label>
                                 <Form.Control type='text' placeholder='Username' name="username" id='username' onChange={(event) => this.setState({[event.target.name]: event.target.value})}></Form.Control>
