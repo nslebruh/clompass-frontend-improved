@@ -3,9 +3,8 @@ import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Routes, Route, } from "react-router-dom";
 import { Navbar, Nav, Form, Button, Offcanvas, Image, Container, Row, Col, Spinner, Stack } from 'react-bootstrap';
 import { LinkContainer } from "react-router-bootstrap";
-import "./app.css"
+import "./scss/app.scss"
 import ICalParser from 'ical-js-parser';
-import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 
 import Dashboard from "./components/dashboard.js";
 import LearningTasks from "./components/learning_tasks.js";
