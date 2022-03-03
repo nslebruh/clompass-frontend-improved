@@ -227,7 +227,7 @@ export default class App extends React.Component {
                             <br/>
                             <Form.Label>Input Password</Form.Label>
                             <Form.Control type="password" placeholder="password" name="password" id="password" onChange={(event) => this.setState({[event.target.name]: event.target.value})} />
-                            <Button type="button" onClick={() => this.fetchApi()} ></Button>
+                            <Button type="button" onClick={() => this.fetchApi()}>Get learning tasks</Button>
                         </Form>
                         {/* <Form>
                                 <Form.Label>Input Username</Form.Label>
