@@ -209,13 +209,6 @@ export default class App extends React.Component {
                     </Offcanvas.Header>
                     <Offcanvas.Body>
                         <Form>
-                            <Form.Label>
-                                Input learning tasks response data
-                            </Form.Label>
-                            <Form.Control type="text" placeholder="Data" name="learning_tasks_format_data" onChange={(e) => this.setState({[e.target.name]: e.target.value})}/>
-                            <Button type="button" onClick={() => this.formatLearningTasks(this.state.learning_tasks_format_data)}>Format learning tasks data</Button>
-                        </Form>
-                        <Form>
                             <Form.Label>Input new schedule URL</Form.Label>
                             <Form.Control type='text' placeholder='URL' name='new_schedule_url' id='url' onChange={(event) => this.setState({data: {...this.state.data, schedule_url: event.target.value}})}></Form.Control>
                             <Button onClick={() => this.fetchSchedule(this.state.data.schedule_url)}>Get schedule data</Button>
@@ -227,7 +220,10 @@ export default class App extends React.Component {
                             <br/>
                             <Form.Label>Input Password</Form.Label>
                             <Form.Control type="password" placeholder="password" name="password" id="password" onChange={(event) => this.setState({[event.target.name]: event.target.value})} />
-                            <Button type="button" onClick={() => this.fetchApi()}>Get learning tasks</Button>
+                            <Button type="button" onClick={() => this.setState({get_type: "learningtasks"})}>learning tasks {this.state.get_type === "learningtasks" ? "tick" : null}</Button>
+                            <Button type="button" onClick={() => this.setState({get_type: "studentinfo"})}>Student info {this.state.get_type === "studentinfo" ? "tick" : null}</Button>
+                            <Button type="button" onClick={() => this.setState({get_type: "calender"})}>Schedule {this.state.get_type === "calender" ? "tick" : null}</Button>
+                            <Button type="button" onClick={() => this.fetchApi()}>Get data</Button>
                         </Form>
                         {/* <Form>
                                 <Form.Label>Input Username</Form.Label>
