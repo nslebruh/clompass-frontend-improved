@@ -25,6 +25,7 @@ export default class App extends React.Component {
             learning_tasks: true,
             student_info: false,
             update_data_page: false,
+            get_type: "",
             data: {
                 student_info: JSON.parse(localStorage.getItem('clompass-data')).student_info ? JSON.parse(localStorage.getItem('clompass-data')).student_info : {},
                 learning_tasks: JSON.parse(localStorage.getItem('clompass-data')).learning_tasks ? JSON.parse(localStorage.getItem('clompass-data')).learning_tasks : [],
@@ -146,12 +147,12 @@ export default class App extends React.Component {
         )
     }
     fetchApi = async () => {
-        let response = await fetch(`https://api.clompass.com/clompass?username=${this.state.username}&password=${this.state.password}`)
+        let response = await fetch(`https://api.clompass.com/get/${this.state.get_type}?username=${this.state.username}&password=${this.state.password}`)
         response = await response.json();
         console.log(response)
         this.setState({data: {
             ...this.state.data,
-            learning_tasks: response.response,
+            [response.response_type]: response.response_data
         }})
     }
     showOffcanvas() {
