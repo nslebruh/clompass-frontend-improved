@@ -201,7 +201,7 @@ export default class LearningTasks extends React.Component {
                         <ListGroup variant="flush" className="scrollarea">
                             {tasks.map((task, index) => (
                                 <Stack gap={6}>
-                                    <ListGroup.Item as="button" action onClick={() => this.handleOffcanvasChange(task.id, true)} key={task.id}>
+                                    <ListGroup.Item as="button" action onClick={() => this.handleOffcanvasChange(task.id, true)} key={index} id={task.id}>
                                         <div className="d-flex w-100 align-items-center justify-content-between">
                                             <strong className="mb-1">
                                                 {task.name}
@@ -253,8 +253,8 @@ export default class LearningTasks extends React.Component {
                             <br/>
                             Attachments: {task.attachments === "None" ? "None" : null}
                             {task.attachments !== "None" ? task.attachments.map((attachment, index) => 
-                                <div>
-                                    <a key={index} href={attachment.link}>{attachment.name}</a>
+                                <div key={index}>
+                                    <a href={attachment.link}>{attachment.name}</a>
                                     <br/>
                                 </div>
                                 ) : null}
@@ -262,8 +262,8 @@ export default class LearningTasks extends React.Component {
                             <br/>
                             <br/>
                             Submissions: {task.submissions === "None" ? <>None</> : task.submissions.map((submission, index) => (
-                                <div>
-                                    <a key={index} href={submission.link}>{submission.name}</a>
+                                <div key={index}>
+                                    <a href={submission.link}>{submission.name}</a>
                                     <br/>
                                 </div>
                             ))}
@@ -369,8 +369,8 @@ export default class LearningTasks extends React.Component {
                             <br/>
                             Attachments: {task.attachments === "None" ? "None" : null}
                             {task.attachments !== "None" ? task.attachments.map((attachment, index) => 
-                                <div>
-                                    <a key={index} href={attachment.link}>{attachment.name}</a>
+                                <div key={index}>
+                                    <a href={attachment.link}>{attachment.name}</a>
                                     <br/>
                                 </div>
                                 ) : null}
@@ -379,8 +379,8 @@ export default class LearningTasks extends React.Component {
                             <br/>
                             Submissions: {task.submissions === "None" ? "None" : null}
                             {task.submissions !== "None" ? task.submissions.map((submission, index) => 
-                                <div>
-                                    <a key={index }href={submission.link}>{submission.name}</a>
+                                <div key={index}>
+                                    <a href={submission.link}>{submission.name}</a>
                                     <br/>
                                 </div>
                             ) : null}

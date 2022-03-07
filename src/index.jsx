@@ -10,6 +10,7 @@ import Dashboard from "./components/dashboard.js";
 import LearningTasks from "./components/learning_tasks.js";
 import Schedule from "./components/schedule.js";
 import StudentInfo from "./components/student_info.js";
+import MyTasks from "./components/mytasks.js"
 
 export default class App extends React.Component {
     constructor(props) {
@@ -19,11 +20,8 @@ export default class App extends React.Component {
         }
         this.state = {
             learning_tasks_format_data: "",
-            year: '',
             username: '',
             password: '',
-            learning_tasks: true,
-            student_info: false,
             update_data_page: false,
             get_type: "",
             data: {
@@ -32,10 +30,12 @@ export default class App extends React.Component {
                 schedule_url: JSON.parse(localStorage.getItem('clompass-data')).schedule_url ? JSON.parse(localStorage.getItem('clompass-data')).schedule_url : '',
                 schedule_data: [],
             },
+            time: new Date(),
         };
     }
     async componentDidMount() {
         console.log("component mounted")
+        this.timer = setInterval(() => this.tick(), 1000)
         if (this.state.data.schedule_url !== "") {
             this.fetchSchedule(this.state.data.schedule_url)
         }
@@ -43,6 +43,14 @@ export default class App extends React.Component {
         
 
     }
+    componentWillUnmount() {
+        clearInterval(this.timer);
+    }
+    tick() {
+        this.setState({
+          time: new Date()
+        });
+      }
     formatLearningTasks(body) {
         let id = 0;
         let data = [];
@@ -195,6 +203,7 @@ export default class App extends React.Component {
                         </LinkContainer>
                         <Nav.Link onClick={() => this.showOffcanvas()}>Update data</Nav.Link>
                     </Nav>
+                    <Navbar.Text className="justify-content-end allign-right" >{this.state.time.toLocaleTimeString("au-en", {weekday: "long", year: 'numeric', month: 'long', day: 'numeric', hour: "numeric", minute: "2-digit", second: "numeric"})}</Navbar.Text>
                 </Navbar.Collapse>
             </Navbar>
         </>
@@ -245,13 +254,34 @@ export default class App extends React.Component {
             </>
         )
     }
+    dashboard = () => {
+        return (
+            <>
+                <Row>
+                <Col className="text-center">
+                    <h1>Subjects</h1>
+                    <Schedule onlyDayView="true" data={this.state.data.schedule_data}/>
+                  </Col>
+                  <Col className="text-center">
+                    <h1>Overdue learning tasks</h1> 
+                    <LearningTasks renderType="overdue" data={this.state.data.learning_tasks}/>
+                  </Col>
+                  <Col className="text-center">
+                    <h1>My Tasks</h1>
+                    <MyTasks />
+                  </Col>
+                </Row>
+
+        </>
+        )
+    }
     render() {
         return (
             <Router>
                 {this.navbar()}
                 {this.update_data_page()}
                 <Routes>
-                    <Route path="/" element={<Dashboard data={this.state.data} />} />
+                    <Route path="/" element={this.dashboard()} />
                     <Route path="/learning-tasks" element={<LearningTasks data={this.state.data.learning_tasks}/>} />
                     <Route path="/schedule" element={<Schedule data={this.state.data.schedule_data} />} />
                     <Route path="/student" element={<StudentInfo data={this.state.data.student_info}/>} />

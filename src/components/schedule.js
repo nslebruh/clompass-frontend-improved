@@ -7,15 +7,18 @@ export default class Home extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            current_date: new Date(),
-            data: props.data,
-            onlyDayView: props.onlyDayView,
+            mounted: false,
+            data: this.props.data,
+            onlyDayView: this.props.onlyDayView,
         };
+    }
+    componentDidMount() {
+        this.setState({mounted: true});
     }
     render() {
         return (
             <Paper>
-                <Scheduler data={this.state.data} height={this.state.onlyDayView !== "true" ?  "630" : "640"}>
+                <Scheduler data={this.props.data} height={this.state.onlyDayView !== "true" ?  "630" : "640"}>
                     <ViewState defaultCurrentDate={this.state.current_date}/>
                     {this.state.onlyDayView !== "true" ? <WeekView startDayHour={8} endDayHour={16}/> : null}
                     <DayView startDayHour={8} endDayHour={16}/>
