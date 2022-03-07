@@ -6,7 +6,6 @@ import { LinkContainer } from "react-router-bootstrap";
 import "./scss/app.scss"
 import ICalParser from 'ical-js-parser';
 
-import Dashboard from "./components/dashboard.js";
 import LearningTasks from "./components/learning_tasks.js";
 import Schedule from "./components/schedule.js";
 import StudentInfo from "./components/student_info.js";
