@@ -22,7 +22,7 @@ export default class App extends React.Component {
             username: '',
             password: '',
             update_data_page: false,
-            get_type: "",
+            get_type: "learningtasks",
             data: {
                 student_info: JSON.parse(localStorage.getItem('clompass-data')).student_info ? JSON.parse(localStorage.getItem('clompass-data')).student_info : {},
                 learning_tasks: JSON.parse(localStorage.getItem('clompass-data')).learning_tasks ? JSON.parse(localStorage.getItem('clompass-data')).learning_tasks : [],
