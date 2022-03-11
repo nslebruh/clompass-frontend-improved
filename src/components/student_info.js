@@ -1,5 +1,7 @@
 import React from "react";
-import { Container } from "react-bootstrap"
+import { Container, Row, Col } from "react-bootstrap"
+
+import Chronicles from "./chronicles";
 export default class Home extends React.Component {
     constructor(props) {
         super(props);
@@ -7,21 +9,27 @@ export default class Home extends React.Component {
     }
     render() {
         return (
-            <Container >
-                <h1>Profile</h1>
-
-                Name: {this.props.data.name}
-                <br/>
-                Prefered name: {this.props.data.prefered_name}
-                <br/>
-                House: {this.props.data.house}
-                <br/>
-                Form: {this.props.data.form}
-                <br/>
-                id: {this.props.data.school_id}
-                <br/>
-                <img src={this.props.data.image} />
-            </Container >
+            <Container>
+                <Row>
+                    <Col>
+                        <h1>Profile</h1>
+                        Name: {this.props.data.name}
+                        <br/>
+                        Prefered name: {this.props.data.prefered_name}
+                        <br/>
+                        House: {this.props.data.house}
+                        <br/>
+                        Form: {this.props.data.form}
+                        <br/>
+                        id: {this.props.data.school_id}
+                        <br/>
+                        <img src={this.props.data.image} />
+                    </Col>
+                    <Col>
+                        <Chronicles data={this.data.chronicles}/>
+                    </Col>
+                </Row>
+            </Container>
         )
     }
 }
