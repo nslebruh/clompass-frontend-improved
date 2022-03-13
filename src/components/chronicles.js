@@ -8,7 +8,6 @@ export default class Chronicles extends React.Component {
         this.ids = {}
         for (let i = 0; i<this.data.length; i++) {
             this.ids[this.data[i].id] = false
-            console.log(this.ids)
         }
         this.state = {
             ids: this.ids
@@ -17,6 +16,7 @@ export default class Chronicles extends React.Component {
     handleOffcanvasChange = (id, state) => {
         console.log(id, state)
         this.setState({ids: {
+            ...this.state.ids,
             [id] : state
         }})
 
@@ -44,7 +44,21 @@ export default class Chronicles extends React.Component {
                     </Offcanvas.Header>
                     <Offcanvas.Body>
                     Occured on {new Date(data.occurredTimestamp).toLocaleTimeString("au-en", {weekday: "long", year: 'numeric', month: 'long', day: 'numeric', hour: "numeric", minute: "2-digit"})} <br/>
-                    Created on {new Date(data.createdTimestamp).toLocaleTimeString("au-en", {weekday: "long", year: 'numeric', month: 'long', day: 'numeric', hour: "numeric", minute: "2-digit"})}
+                    Created on {new Date(data.createdTimestamp).toLocaleTimeString("au-en", {weekday: "long", year: 'numeric', month: 'long', day: 'numeric', hour: "numeric", minute: "2-digit"})} <br/>
+                    <br/>
+                    {data.data.map((variable, index) => (
+                        <div key={index}>
+                        {variable.name} <br/>
+                        {variable.description} <br/>
+                        {variable.values.map((val, index) => (
+                            <div key={index}>
+                            {val.type === "text" ? val.text : `${val.name}: ${val.checked === true ? "Yes" : "No"}`} <br/>
+                            </div>
+                        ))}
+                        <br/>
+                        </div>
+
+                    ))}
                     </Offcanvas.Body>
                 </Offcanvas>
                 )}
