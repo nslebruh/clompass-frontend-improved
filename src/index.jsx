@@ -10,12 +10,14 @@ import LearningTasks from "./components/learning_tasks.js";
 import Schedule from "./components/schedule.js";
 import StudentInfo from "./components/student_info.js";
 import MyTasks from "./components/mytasks.js"
+import Subjects from "./components/subjects.js"
+import Subject from "./components/subject.js"
 
 export default class App extends React.Component {
     constructor(props) {
         super(props);
         if (localStorage.getItem('clompass-data') === null) {   
-          localStorage.setItem('clompass-data', '{"learning_tasks":[],"student_info":{},"schedule_url":""}')
+          localStorage.setItem('clompass-data', '{"learning_tasks":[],"student_info":{},"schedule_url":"lessonplans":[]}')
         }
         this.state = {
             learning_tasks_format_data: "",
@@ -27,8 +29,9 @@ export default class App extends React.Component {
                 student_info: JSON.parse(localStorage.getItem('clompass-data')).student_info ? JSON.parse(localStorage.getItem('clompass-data')).student_info : {},
                 learning_tasks: JSON.parse(localStorage.getItem('clompass-data')).learning_tasks ? JSON.parse(localStorage.getItem('clompass-data')).learning_tasks : [],
                 schedule_url: JSON.parse(localStorage.getItem('clompass-data')).schedule_url ? JSON.parse(localStorage.getItem('clompass-data')).schedule_url : '',
-                schedule_data: [],
+                lessonplans: JSON.parse(localStorage.getItem('clompass-data')).lessonplans ? JSON.parse(localStorage.getItem('clompass-data')).lessonplans : [],
             },
+            schedule_data: [],
             time: new Date(),
         };
     }
@@ -50,68 +53,13 @@ export default class App extends React.Component {
           time: new Date()
         });
       }
-    formatLearningTasks(body) {
-        let id = 0;
-        let data = [];
-        let responsebody = JSON.parse(body).d.data;
-        for (let i = 0; i < responsebody.length; i++) {
-            let task = responsebody[i];
-            let name = task.name;
-            let subject_name = task.subjectName;
-            let subject_code = task.activityName;
-            let attachments = [];
-            let submissions = [];
-            let description = task.description;
-            let official_due_date = task.dueDateTimestamp;
-            let individual_due_date = task.students[0].dueDateTimestamp;
-            individual_due_date ? individual_due_date = individual_due_date : individual_due_date = official_due_date;
-            let submission_status;
-            let submission_svg_link;
-            if (task.students[0].submissionStatus === 1) {
-                submission_status = "Pending";
-                submission_svg_link = "https://cdn.jsdelivr.net/gh/clompass/clompass@main/public/svg/task-status/pending.svg";
-              } else if (task.students[0].submissionStatus === 2) {
-                submission_status = "Overdue";
-                submission_svg_link = "https://cdn.jsdelivr.net/gh/clompass/clompass@main/public/svg/task-status/overdue.svg";
-              } else if (task.students[0].submissionStatus === 3) {
-                submission_status = "On time";
-                submission_svg_link = "https://cdn.jsdelivr.net/gh/clompass/clompass@main/public/svg/task-status/ontime.svg"
-              } else if (task.students[0].submissionStatus === 4) {
-                submission_status = "Recieved late";
-                submission_svg_link = "https://cdn.jsdelivr.net/gh/clompass/clompass@main/public/svg/task-status/receivedlate.svg";
-              } else {
-                submission_status = "Unknown"
-              }
-            if (task.attachments != null) {
-                for (let j = 0; j < task.attachments.length; j++) {
-                    attachments.push({name: task.attachments[j].name, link: "https://lilydaleheights-vic.compass.education/Services/FileAssets.svc/DownloadFile?id=" + task.attachments[j].id + "&originalFileName=" + task.attachments[j].fileName.replace(/ /g, "%20"),});
-                }
-              } else {
-                attachments = "None";
-              }
-            
-            if (task.students[0].submissions != null) {
-              for (let j = 0; j < task.students[0].submissions.length; j++) {
-                    submissions.push({name: task.students[0].submissions[j].fileName, link: "https://lilydaleheights-vic.compass.education/Services/FileDownload/FileRequestHandler?FileDownloadType=2&taskId=" + task.students[0].taskId + "&submissionId=" + task.students[0].submissions[j].id});
-              }
-            } else {
-                submissions = "None"
-            }
-            data.push({name: name, subject_name: subject_name, subject_code: subject_code, attachments: attachments, description: description, official_due_date: official_due_date, individual_due_date: individual_due_date, submission_status: submission_status, submissions: submissions, submission_svg_link: submission_svg_link, id: id});
-            id++; 
-        }
-        this.setState({data: {
-            ...this.state.data,
-            learning_tasks: data,
-            }
-        })
-    }
     fetchSchedule = async (url) => {
         const response = await fetch(url)
-        let data = await response.blob();
+        const d = [];
+        try {
+            let data = await response.blob();
         data = await data.text();
         const ics = ICalParser.toJSON(data);
-        const d = [];
         for (let i = 0; i < ics.events.length; i++) {
           d.push({
             startDate: this.parseTime(ics.events[i].dtstart.value),
@@ -121,12 +69,12 @@ export default class App extends React.Component {
             title: ics.events[i].summary + ' - ' + ics.events[i].location + ' - ' + ics.events[i].description.split(' : ')[1],
           })
         }
+        } catch (error) {
+            console.log(error)
+        }
+        
         this.setState({
-            data: {
-                ...this.state.data,
-                schedule_data: d
-            }
-                
+            schedule_data: d,
         })
     }
     parseTime(string) {
@@ -167,9 +115,9 @@ export default class App extends React.Component {
     }
     saveData() {
         let data = {};
-        data.learning_tasks = this.state.data.learning_tasks
-        data.student_info = this.state.data.student_info
-        data.schedule_url = this.state.data.schedule_url
+        Object.keys(this.state.data).forEach(key => {
+            data[key] = this.state.data[key]
+        })
         console.log(JSON.stringify(data))
         localStorage.setItem('clompass-data', JSON.stringify(data))
     }
@@ -197,6 +145,9 @@ export default class App extends React.Component {
                         <LinkContainer to="/schedule">
                             <Nav.Link>Schedule</Nav.Link>
                         </LinkContainer>
+                        <LinkContainer to="/subjects">
+                            <Nav.Link>Subjects</Nav.Link>
+                        </LinkContainer>
                         <LinkContainer to="/student">
                             <Nav.Link>Profile</Nav.Link>
                         </LinkContainer>
@@ -206,7 +157,7 @@ export default class App extends React.Component {
                 </Navbar.Collapse>
             </Navbar>
         </>
-        )     
+     )     
     }
     update_data_page() {
         return (
@@ -231,6 +182,7 @@ export default class App extends React.Component {
                             <Button type="button" onClick={() => this.setState({get_type: "learningtasks"})}>learning tasks {this.state.get_type === "learningtasks" ? "tick" : null}</Button>
                             <Button type="button" onClick={() => this.setState({get_type: "studentinfo"})}>Student info {this.state.get_type === "studentinfo" ? "tick" : null}</Button>
                             <Button type="button" onClick={() => this.setState({get_type: "calender"})}>Schedule {this.state.get_type === "calender" ? "tick" : null}</Button>
+                            <Button type="button" onClick={() => this.setState({get_type: "lessonplans"})}>Subjects {this.state.get_type === "lessonplans" ? "tick" : null}</Button>
                             <Button type="button" onClick={() => this.fetchApi()}>Get data</Button>
                         </Form>
                         {/* <Form>
@@ -258,8 +210,8 @@ export default class App extends React.Component {
             <>
                 <Row>
                 <Col className="text-center">
-                    <h1>Subjects</h1>
-                    <Schedule onlyDayView="true" data={this.state.data.schedule_data}/>
+                    <h1>Today's Schedule</h1>
+                    <Schedule onlyDayView="true" data={this.state.schedule_data}/>
                   </Col>
                   <Col className="text-center">
                     <h1>Overdue learning tasks</h1> 
@@ -284,6 +236,8 @@ export default class App extends React.Component {
                     <Route path="/learning-tasks" element={<LearningTasks data={this.state.data.learning_tasks}/>} />
                     <Route path="/schedule" element={<Schedule data={this.state.data.schedule_data} />} />
                     <Route path="/student" element={<StudentInfo data={this.state.data.student_info}/>} />
+                    <Route path="/subjects" element={<Subjects data={this.state.data.lessonplans}/>}/>
+                    <Route path="/subject/:subjectCode" element={<Subject data={this.state.data.lessonplans}/>} />
                 </Routes>
             </Router>
         )

@@ -234,7 +234,7 @@ export default class LearningTasks extends React.Component {
         return (
             <div>
                 {tasks.map((task, index) => 
-                    <Offcanvas show={this.state.offcanvasList[task.id]} onHide={() => this.handleOffcanvasChange(task.id, false)} key={task.id}>
+                    <Offcanvas show={this.state.offcanvasList[task.id]} onHide={() => this.handleOffcanvasChange(task.id, false)} key={index}>
                     <Offcanvas.Header closeButton>
                     <Offcanvas.Title>{task.name}</Offcanvas.Title>
                     </Offcanvas.Header>
