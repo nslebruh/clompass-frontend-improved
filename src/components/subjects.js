@@ -9,7 +9,7 @@ export default class Subjects extends React.Component {
     render() {
         return (
             <>
-            {this.data.map((subject, index) =>     
+            {this.data === [] ? <>No subject data</> : this.data.map((subject, index) =>     
                 <h1 key={index}>
                     <Link to={`/subject/${subject.school_id}`}>
                     {subject.name}
@@ -17,6 +17,7 @@ export default class Subjects extends React.Component {
 
                 </h1>
             )}
+            
             </>
         )
     }
