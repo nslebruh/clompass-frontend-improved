@@ -125,6 +125,7 @@ export default class App extends React.Component {
                 this.number = 0
                 this.setState({
                     api_message: response.message,
+                    api_fetch_error: null,
                     fetching_api_data: false,
                     data: {
                     ...this.state.data,
@@ -135,6 +136,7 @@ export default class App extends React.Component {
             console.log(error)
             this.number = 0
             this.setState({
+                api_message: "it no worke",
                 api_fetch_error: "Error fetching data from API",
                 fetching_api_data: false,
             })
