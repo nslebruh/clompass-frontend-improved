@@ -20,8 +20,10 @@ export default class App extends React.Component {
           localStorage.setItem('clompass-data', '{"learning_tasks":[],"student_info":{},"schedule_url":"lessonplans":[]}')
         }
         this.state = {
-            learning_tasks_format_data: "",
+            fetching_api_data: false,
+            api_message: null,
             username: '',
+            api_fetch_error: null,
             password: '',
             update_data_page: false,
             get_type: "learningtasks",
@@ -34,6 +36,7 @@ export default class App extends React.Component {
             schedule_data: [],
             time: new Date(),
         };
+        this.number = 0;
     }
     async componentDidMount() {
         console.log("component mounted")
@@ -102,13 +105,43 @@ export default class App extends React.Component {
         )
     }
     fetchApi = async () => {
-        let response = await fetch(`https://api.clompass.com/get/${this.state.get_type}?username=${this.state.username}&password=${this.state.password}`)
-        response = await response.json();
-        console.log(response)
-        this.setState({data: {
-            ...this.state.data,
-            [response.response_type]: response.response_data
-        }})
+        this.number++
+        if (this.number > 1) {
+            return
+        }
+        try {
+            let response = await fetch(`https://api.clompass.com/get/${this.state.get_type}?username=${this.state.username}&password=${this.state.password}`)
+            response = await response.json();
+            console.log(response)
+            if (response.error) {
+                this.setState({
+                    api_message: response.message,
+                    api_fetch_error: response.error,
+                    fetching_api_data: false,
+                })
+                this.number = 0
+                return
+            } else {
+                this.number = 0
+                this.setState({
+                    api_message: response.message,
+                    fetching_api_data: false,
+                    data: {
+                    ...this.state.data,
+                    [response.response_type]: response.response_data
+                }})
+            }
+        } catch (error) {
+            console.log(error)
+            this.number = 0
+            this.setState({
+                api_fetch_error: "Error fetching data from API",
+                fetching_api_data: false,
+            })
+            return
+        }
+        
+        
     }
     showOffcanvas() {
         this.setState({update_data_page: true})
@@ -160,6 +193,9 @@ export default class App extends React.Component {
      )     
     }
     update_data_page() {
+        if (this.state.fetching_api_data === true) {
+            this.fetchApi()
+        }
         return (
             <>
                 <Offcanvas show={this.state.update_data_page} onHide={() => this.setState({update_data_page: false})}>
@@ -167,11 +203,6 @@ export default class App extends React.Component {
                         <Offcanvas.Title>Update Data</Offcanvas.Title>
                     </Offcanvas.Header>
                     <Offcanvas.Body>
-                        <Form>
-                            <Form.Label>Input new schedule URL</Form.Label>
-                            <Form.Control type='text' placeholder='URL' name='new_schedule_url' id='url' onChange={(event) => this.setState({data: {...this.state.data, schedule_url: event.target.value}})}></Form.Control>
-                            <Button onClick={() => this.fetchSchedule(this.state.data.schedule_url)}>Get schedule data</Button>
-                        </Form>
                         <Button onClick={() => this.saveData()}>Save data to local storage</Button>
                         <Form>
                             <Form.Label>Input Username</Form.Label>
@@ -183,7 +214,10 @@ export default class App extends React.Component {
                             <Button type="button" onClick={() => this.setState({get_type: "studentinfo"})}>Student info {this.state.get_type === "studentinfo" ? "tick" : null}</Button>
                             <Button type="button" onClick={() => this.setState({get_type: "calender"})}>Schedule {this.state.get_type === "calender" ? "tick" : null}</Button>
                             <Button type="button" onClick={() => this.setState({get_type: "lessonplans"})}>Subjects {this.state.get_type === "lessonplans" ? "tick" : null}</Button>
-                            <Button type="button" onClick={() => this.fetchApi()}>Get data</Button>
+                            <br/>
+                            {this.state.fetching_api_data ? <Button disabled><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true"/></Button> : <Button type="button" onClick={() => this.setState({fetching_api_data: true})}>Get data</Button>}
+                            {this.state.api_message ? <p>{this.state.api_message}</p> : null}
+                            {this.state.api_fetch_error ? <h1>Error: {this.state.api_fetch_error}</h1> : null}
                         </Form>
                         {/* <Form>
                                 <Form.Label>Input Username</Form.Label>
@@ -234,7 +268,7 @@ export default class App extends React.Component {
                 <Routes>
                     <Route path="/" element={this.dashboard()} />
                     <Route path="/learning-tasks" element={<LearningTasks data={this.state.data.learning_tasks}/>} />
-                    <Route path="/schedule" element={<Schedule data={this.state.data.schedule_data} />} />
+                    <Route path="/schedule" element={<Schedule data={this.state.schedule_data} />} />
                     <Route path="/student" element={<StudentInfo data={this.state.data.student_info}/>} />
                     <Route path="/subjects" element={<Subjects data={this.state.data.lessonplans}/>}/>
                     <Route path="/subject/:subjectCode" element={<Subject data={this.state.data.lessonplans}/>} />
