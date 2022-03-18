@@ -21,6 +21,12 @@ class Subject extends React.Component {
         for (let i = 0; i<this.props.data.length; i++) {
             this.subjects.push(this.props.data[i].school_id)
         }
+        this.subject = null
+        for (let j = 0; j<this.props.data.length; j++) {
+            if (this.props.data[i].school_id === this.props.params.subjectCode) {
+                this.subject = this.props.data[i]
+            }
+        }
     }
     render() {
         return (
