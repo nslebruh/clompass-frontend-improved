@@ -1,3 +1,4 @@
+
 import React from "react";
 import {useParams, useNavigate} from "react-router-dom"
 import parse from "html-react-parser"
@@ -42,12 +43,14 @@ class Subject extends React.Component {
         if (this.number > 1) {
             return
         }
-        let lesson_plan = this.subject.lessons[key].plan
-        console.log(lesson_plan)
         if (lesson_plan === null) {
             this.number = 0;
+            this.setState({fetching_lesson_plan: false, current_lesson_plan: "No lesson plan"})
             
         }
+        let lesson_plan = this.subject.lessons[key].plan
+        console.log(lesson_plan)
+        
         let response = await fetch(lesson_plan.url, {credentials: 'include'})
         let blob = await response.blob()
         let html = await blob.text()
