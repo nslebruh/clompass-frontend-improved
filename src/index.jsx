@@ -6,6 +6,7 @@ import { LinkContainer } from "react-router-bootstrap";
 import "./scss/app.scss"
 import ICalParser from 'ical-js-parser';
 
+import PageNotFound from "./components/page_not_found.js"
 import LearningTasks from "./components/learning_tasks.js";
 import Schedule from "./components/schedule.js";
 import StudentInfo from "./components/student_info.js";
@@ -195,7 +196,7 @@ export default class App extends React.Component {
      )     
     }
     update_data_page() {
-        if (this.state.fetching_api_data === true) {
+        if (this.state.fetching_api_data === true && this.number === 0) {
             this.fetchApi()
         }
         return (
@@ -274,6 +275,7 @@ export default class App extends React.Component {
                     <Route path="/student" element={<StudentInfo data={this.state.data.student_info}/>} />
                     <Route path="/subjects" element={<Subjects data={this.state.data.lessonplans}/>}/>
                     <Route path="/subject/:subjectCode" element={<Subject data={this.state.data.lessonplans}/>} />
+                    <Route path="*" element={<PageNotFound />} />
                 </Routes>
             </Router>
         )
