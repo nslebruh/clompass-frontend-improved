@@ -48,6 +48,7 @@ class Subject extends React.Component {
         if (lesson_plan === null) {
             this.number = 0;
             this.setState({current_lesson_plan: "No lesson plan", fetching_lesson_plan: false})
+            return
         }
         let response = await fetch(lesson_plan.url, {credentials: 'include'})
         let blob = await response.blob()
