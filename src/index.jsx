@@ -39,7 +39,7 @@ export default class App extends React.Component {
             time: new Date(),
         };
         this.number = 0;
-        this.ws = io("http://api.clompass.com/get", {transports: ["websocket"]})
+        this.ws = io("https://api.clompass.com/get", {transports: ["websocket"]})
     }
     async componentDidMount() {
         console.log("component mounted")
