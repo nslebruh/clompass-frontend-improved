@@ -5,6 +5,7 @@ import { Navbar, Nav, Form, Button, Offcanvas, Image, Container, Row, Col, Spinn
 import { LinkContainer } from "react-router-bootstrap";
 import "./scss/app.scss"
 import ICalParser from 'ical-js-parser';
+import {io} from "socket.io-client"
 
 import PageNotFound from "./components/page_not_found.js"
 import LearningTasks from "./components/learning_tasks.js";
@@ -32,15 +33,45 @@ export default class App extends React.Component {
                 student_info: JSON.parse(localStorage.getItem('clompass-data')).student_info ? JSON.parse(localStorage.getItem('clompass-data')).student_info : {},
                 learning_tasks: JSON.parse(localStorage.getItem('clompass-data')).learning_tasks ? JSON.parse(localStorage.getItem('clompass-data')).learning_tasks : [],
                 schedule_url: JSON.parse(localStorage.getItem('clompass-data')).schedule_url ? JSON.parse(localStorage.getItem('clompass-data')).schedule_url : '',
-                lessonplans: JSON.parse(localStorage.getItem('clompass-data')).lessonplans ? JSON.parse(localStorage.getItem('clompass-data')).lessonplans : [],
+                subjects: JSON.parse(localStorage.getItem('clompass-data')).subjects ? JSON.parse(localStorage.getItem('clompass-data')).subjects : [],
             },
             schedule_data: [],
             time: new Date(),
         };
         this.number = 0;
+        this.ws = io("http://api.clompass.com/get", {transports: ["websocket"]})
     }
     async componentDidMount() {
         console.log("component mounted")
+        this.ws = this.ws.connect()
+        this.ws.on("connect", () => {
+            console.log("connected to webSocket")
+        })
+        this.ws.on("disconnect", () => {
+            console.log("disconnected from webSocket")
+        })
+        this.ws.on("message", (message) => {
+            console.log(message)
+            this.setState({api_message: message})
+        })
+        this.ws.on("data", (data) => {
+            if (data.error) {
+                console.log(data.message, data.error)
+                this.setState({api_message: data.message, api_fetch_error: data.error, fetching_api_data: false})
+            } else {
+                console.log(data.message, data.response_type)
+                this.setState({
+                    api_message: `${data.message}: ${data.response_type}`,
+                    fetching_api_data: false,
+                    data: {
+                    [data.response_type]: data.response_data
+                    }
+                })
+                return
+            }
+            
+            
+        })
         this.timer = setInterval(() => this.tick(), 1000)
         if (this.state.data.schedule_url !== "") {
             this.fetchSchedule(this.state.data.schedule_url)
@@ -51,6 +82,7 @@ export default class App extends React.Component {
     }
     componentWillUnmount() {
         clearInterval(this.timer);
+        this.ws.disconnect();
     }
     tick() {
         this.setState({
@@ -104,48 +136,7 @@ export default class App extends React.Component {
               string.slice(13, 15) + "Z",
             ].join(""),
         )
-    }
-    fetchApi = async () => {
-        this.number++
-        if (this.number > 1) {
-            return
-        }
-        try {
-            let response = await fetch(`https://api.clompass.com/get/${this.state.get_type}?username=${this.state.username}&password=${this.state.password}`)
-            response = await response.json();
-            console.log(response)
-            if (response.error) {
-                this.setState({
-                    api_message: response.message,
-                    api_fetch_error: response.error,
-                    fetching_api_data: false,
-                })
-                this.number = 0
-                return
-            } else {
-                this.number = 0
-                this.setState({
-                    api_message: response.message,
-                    api_fetch_error: null,
-                    fetching_api_data: false,
-                    data: {
-                    ...this.state.data,
-                    [response.response_type]: response.response_data
-                }})
-            }
-        } catch (error) {
-            console.log(error)
-            this.number = 0
-            this.setState({
-                api_message: "it no worke",
-                api_fetch_error: "Error fetching data from API",
-                fetching_api_data: false,
-            })
-            return
-        }
-        
-        
-    }
+    }      
     showOffcanvas() {
         this.setState({update_data_page: true})
     }
@@ -195,10 +186,11 @@ export default class App extends React.Component {
         </>
      )     
     }
+    sendEmit = (type, username, password) => {
+        this.setState({fetching_api_data: true})
+        this.ws.emit(type, username, password)
+    }
     update_data_page() {
-        if (this.state.fetching_api_data === true && this.number === 0) {
-            this.fetchApi()
-        }
         return (
             <>
                 <Offcanvas show={this.state.update_data_page} onHide={() => this.setState({update_data_page: false})}>
@@ -215,10 +207,10 @@ export default class App extends React.Component {
                             <Form.Control type="password" placeholder="password" name="password" id="password" onChange={(event) => this.setState({[event.target.name]: event.target.value})} />
                             <Button type="button" onClick={() => this.setState({get_type: "learningtasks"})}>learning tasks {this.state.get_type === "learningtasks" ? "tick" : null}</Button>
                             <Button type="button" onClick={() => this.setState({get_type: "studentinfo"})}>Student info {this.state.get_type === "studentinfo" ? "tick" : null}</Button>
-                            <Button type="button" onClick={() => this.setState({get_type: "calender"})}>Schedule {this.state.get_type === "calender" ? "tick" : null}</Button>
-                            <Button type="button" onClick={() => this.setState({get_type: "lessonplans"})}>Subjects {this.state.get_type === "lessonplans" ? "tick" : null}</Button>
+                            <Button type="button" onClick={() => this.setState({get_type: "schedule"})}>Schedule {this.state.get_type === "schedule" ? "tick" : null}</Button>
+                            <Button type="button" onClick={() => this.setState({get_type: "subjects"})}>Subjects {this.state.get_type === "subjects" ? "tick" : null}</Button>
                             <br/>
-                            {this.state.fetching_api_data ? <Button disabled><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true"/></Button> : <Button type="button" onClick={() => this.setState({fetching_api_data: true})}>Get data</Button>}
+                            {this.state.fetching_api_data ? <Button disabled><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true"/></Button> : <Button type="button" onClick={() => this.sendEmit(this.state.get_type, this.state.username, this.state.password)}>Get data</Button>}
                             {this.state.api_message ? <p>{this.state.api_message}</p> : null}
                             {this.state.api_fetch_error ? <h1>Error: {this.state.api_fetch_error}</h1> : null}
                         </Form>
@@ -273,8 +265,8 @@ export default class App extends React.Component {
                     <Route path="/learning-tasks" element={<LearningTasks data={this.state.data.learning_tasks}/>} />
                     <Route path="/schedule" element={<Schedule data={this.state.schedule_data} />} />
                     <Route path="/student" element={<StudentInfo data={this.state.data.student_info}/>} />
-                    <Route path="/subjects" element={<Subjects data={this.state.data.lessonplans}/>}/>
-                    <Route path="/subject/:subjectCode" element={<Subject data={this.state.data.lessonplans}/>} />
+                    <Route path="/subjects" element={<Subjects data={this.state.data.subjects}/>}/>
+                    <Route path="/subject/:subjectCode" element={<Subject data={this.state.data.subjects}/>} />
                     <Route path="*" element={<PageNotFound />} />
                 </Routes>
             </Router>

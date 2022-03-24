@@ -50,7 +50,7 @@ class Subject extends React.Component {
             this.setState({current_lesson_plan: "No lesson plan", fetching_lesson_plan: false})
             return
         }
-        let response = await fetch(lesson_plan.url, {mode: "no-cors", credentials: 'include'})
+        let response = await fetch("http://localhost:3001/DownloadFile?sessionstate=readonly&id=ee4b9151-14a8-4bf2-b15f-80f203c013b3&nodeId=176281");
         let blob = await response.blob()
         let html = await blob.text()
         console.log(html)
