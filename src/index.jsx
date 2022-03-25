@@ -14,16 +14,17 @@ import StudentInfo from "./components/student_info.js";
 import MyTasks from "./components/mytasks.js"
 import Subjects from "./components/subjects.js"
 import Subject from "./components/subject.js"
+import Error from "./components/error.js"
 
 export default class App extends React.Component {
     constructor(props) {
         super(props);
         if (localStorage.getItem('clompass-data') === null) {   
-          localStorage.setItem('clompass-data', '{"learning_tasks":[],"student_info":{},"schedule_url":"lessonplans":[]}')
+          localStorage.setItem('clompass-data', '{"learning_tasks":[],"student_info":{},"schedule_url":"subjects":[]}')
         }
         this.state = {
             fetching_api_data: false,
-            api_message: null,
+            api_message: [{timestamp: new Date().toISOString(), message: "lmao", status_code: 200}],
             username: '',
             api_fetch_error: null,
             password: '',
@@ -38,7 +39,6 @@ export default class App extends React.Component {
             schedule_data: [],
             time: new Date(),
         };
-        this.number = 0;
         this.ws = io("https://api.clompass.com/get", {transports: ["websocket"]})
     }
     async componentDidMount() {
@@ -50,27 +50,24 @@ export default class App extends React.Component {
         this.ws.on("disconnect", () => {
             console.log("disconnected from webSocket")
         })
-        this.ws.on("message", (message) => {
-            console.log(message)
-            this.setState({api_message: message})
+        this.ws.on("message", (status_code, timestamp, message) => {
+            console.log(timestamp, message)
+            this.setState({api_message: [...this.state.api_message, {timestamp: timestamp, message: message, status_code: status_code}]})
         })
-        this.ws.on("data", (data) => {
-            if (data.error) {
-                console.log(data.message, data.error)
-                this.setState({api_message: data.message, api_fetch_error: data.error, fetching_api_data: false})
-            } else {
-                console.log(data.message, data.response_type)
-                this.setState({
-                    api_message: `${data.message}: ${data.response_type}`,
-                    fetching_api_data: false,
-                    data: {
-                    [data.response_type]: data.response_data
-                    }
-                })
-                return
-            }
-            
-            
+        this.ws.on("data", (status_code, timestamp, message, response_type, response_data) => {
+            console.log(status_code, message, response_type)
+            this.setState({
+                api_message: [{status_code: status_code, message: message, timestamp, timestamp}],
+                fetching_api_data: false,
+                data: {
+                [response_type]: response_data
+                }
+            })
+            return
+        })
+        this.ws.on("error", (status_code, timestamp, message, error) => {
+            console.log(status_code, message, error)
+            this.setState({api_message: [{timestamp: timestamp, status_code: status_code, message: `${message}: ${error}`}], api_fetch_error: error, fetching_api_data: false})
         })
         this.timer = setInterval(() => this.tick(), 1000)
         if (this.state.data.schedule_url !== "") {
@@ -137,9 +134,6 @@ export default class App extends React.Component {
             ].join(""),
         )
     }      
-    showOffcanvas() {
-        this.setState({update_data_page: true})
-    }
     saveData() {
         let data = {};
         Object.keys(this.state.data).forEach(key => {
@@ -147,10 +141,6 @@ export default class App extends React.Component {
         })
         console.log(JSON.stringify(data))
         localStorage.setItem('clompass-data', JSON.stringify(data))
-    }
-    changeTF(status, state) {
-        let x = status === true ? false : true
-        this.setState({[state]: x})
     }
     navbar() {
         return (
@@ -178,7 +168,7 @@ export default class App extends React.Component {
                         <LinkContainer to="/student">
                             <Nav.Link>Profile</Nav.Link>
                         </LinkContainer>
-                        <Nav.Link onClick={() => this.showOffcanvas()}>Update data</Nav.Link>
+                        <Nav.Link onClick={() => this.setState({update_data_page: true})}>Update data</Nav.Link>
                     </Nav>
                     <Navbar.Text className="justify-content-end allign-right" >{this.state.time.toLocaleTimeString("au-en", {weekday: "long", year: 'numeric', month: 'long', day: 'numeric', hour: "numeric", minute: "2-digit", second: "numeric"})}</Navbar.Text>
                 </Navbar.Collapse>
@@ -187,6 +177,7 @@ export default class App extends React.Component {
      )     
     }
     sendEmit = (type, username, password) => {
+        this.number++
         this.setState({fetching_api_data: true})
         this.ws.emit(type, username, password)
     }
@@ -211,9 +202,13 @@ export default class App extends React.Component {
                             <Button type="button" onClick={() => this.setState({get_type: "subjects"})}>Subjects {this.state.get_type === "subjects" ? "tick" : null}</Button>
                             <br/>
                             {this.state.fetching_api_data ? <Button disabled><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true"/></Button> : <Button type="button" onClick={() => this.sendEmit(this.state.get_type, this.state.username, this.state.password)}>Get data</Button>}
-                            {this.state.api_message ? <p>{this.state.api_message}</p> : null}
-                            {this.state.api_fetch_error ? <h1>Error: {this.state.api_fetch_error}</h1> : null}
                         </Form>
+                        {this.state.api_message.map((message, index) => (
+                            <p key={index}>
+                                {message.timestamp}: {message.status_code} - {message.message}
+                            </p>
+                        ))}
+                        {this.state.api_fetch_error ? <h1>Error: {this.state.api_fetch_error}</h1> : null}
                         {/* <Form>
                                 <Form.Label>Input Username</Form.Label>
                                 <Form.Control type='text' placeholder='Username' name="username" id='username' onChange={(event) => this.setState({[event.target.name]: event.target.value})}></Form.Control>
@@ -267,6 +262,7 @@ export default class App extends React.Component {
                     <Route path="/student" element={<StudentInfo data={this.state.data.student_info}/>} />
                     <Route path="/subjects" element={<Subjects data={this.state.data.subjects}/>}/>
                     <Route path="/subject/:subjectCode" element={<Subject data={this.state.data.subjects}/>} />
+                    <Route path="/error" element={<Error />} />
                     <Route path="*" element={<PageNotFound />} />
                 </Routes>
             </Router>
