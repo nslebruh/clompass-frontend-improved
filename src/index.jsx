@@ -22,6 +22,13 @@ export default class App extends React.Component {
         if (localStorage.getItem('clompass-data') === null) {   
           localStorage.setItem('clompass-data', '{"learning_tasks":[],"student_info":{},"schedule_url":"subjects":[]}')
         }
+        this.localstorage = null
+        try {
+            let data = JSON.parse(this.localstorage.getItem("clompass-data"))
+            console.log(data)
+        } catch {
+
+        }
         this.state = {
             fetching_api_data: false,
             api_message: [{timestamp: new Date().toISOString(), message: "lmao", status_code: 200}],
@@ -60,6 +67,7 @@ export default class App extends React.Component {
                 api_message: [{status_code: status_code, message: message, timestamp, timestamp}],
                 fetching_api_data: false,
                 data: {
+                    ...this.state.data,
                 [response_type]: response_data
                 }
             })
