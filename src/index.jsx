@@ -22,13 +22,6 @@ export default class App extends React.Component {
         if (localStorage.getItem('clompass-data') === null) {   
           localStorage.setItem('clompass-data', '{"learning_tasks":[],"student_info":{},"schedule_url":"subjects":[]}')
         }
-        this.localstorage = null
-        try {
-            let data = JSON.parse(this.localstorage.getItem("clompass-data"))
-            console.log(data)
-        } catch {
-
-        }
         this.state = {
             fetching_api_data: false,
             api_message: [{timestamp: new Date().toISOString(), message: "lmao", status_code: 200}],
