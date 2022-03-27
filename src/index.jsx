@@ -64,7 +64,7 @@ export default class App extends React.Component {
         this.ws.on("data", (status_code, timestamp, message, response_type, response_data) => {
             console.log(status_code, message, response_type)
             this.setState({
-                api_message: [{status_code: status_code, message: message, timestamp, timestamp}],
+                api_message: [{status_code: status_code, message: message, timestamp: timestamp}],
                 fetching_api_data: false,
                 data: {
                     ...this.state.data,
