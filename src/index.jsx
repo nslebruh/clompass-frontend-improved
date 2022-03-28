@@ -19,8 +19,9 @@ import Error from "./components/error.js"
 export default class App extends React.Component {
     constructor(props) {
         super(props);
+        console.log(localStorage.getItem("clompass-data"))
         if (localStorage.getItem('clompass-data') === null) {   
-          localStorage.setItem('clompass-data', '{"learning_tasks":[],"student_info":{},"schedule_url":"subjects":[]}')
+          localStorage.setItem('clompass-data', '{"learning_tasks":[],"student_info":{},"schedule_url":"","subjects":[], "subjects": []}')
         }
         this.state = {
             fetching_api_data: false,
@@ -31,7 +32,7 @@ export default class App extends React.Component {
             update_data_page: false,
             get_type: "learningtasks",
             data: {
-                student_info: JSON.parse(localStorage.getItem('clompass-data')).student_info ? JSON.parse(localStorage.getItem('clompass-data')).student_info : {},
+                student_info: JSON.parse(localStorage.getItem('clompass-data')).student_info !== {} ? JSON.parse(localStorage.getItem('clompass-data')).student_info : {},
                 learning_tasks: JSON.parse(localStorage.getItem('clompass-data')).learning_tasks ? JSON.parse(localStorage.getItem('clompass-data')).learning_tasks : [],
                 schedule_url: JSON.parse(localStorage.getItem('clompass-data')).schedule_url ? JSON.parse(localStorage.getItem('clompass-data')).schedule_url : '',
                 subjects: JSON.parse(localStorage.getItem('clompass-data')).subjects ? JSON.parse(localStorage.getItem('clompass-data')).subjects : [],
