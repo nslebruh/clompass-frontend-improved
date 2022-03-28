@@ -258,8 +258,6 @@ export default class LearningTasks extends React.Component {
                                     <br/>
                                 </div>
                                 ) : null}
-                            
-                            <br/>
                             <br/>
                             Submissions: {task.submissions === "None" ? <>None</> : task.submissions.map((submission, index) => (
                                 <div key={index}>
