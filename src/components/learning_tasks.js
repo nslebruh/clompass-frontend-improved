@@ -257,8 +257,7 @@ export default class LearningTasks extends React.Component {
                                     <a href={attachment.link}>{attachment.name}</a>
                                     <br/>
                                 </div>
-                                ) : null}
-                            <br/>
+                                ) : <br/>}
                             Submissions: {task.submissions === "None" ? <>None</> : task.submissions.map((submission, index) => (
                                 <div key={index}>
                                     <a href={submission.link}>{submission.name}</a>
