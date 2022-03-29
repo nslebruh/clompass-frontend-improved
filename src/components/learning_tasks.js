@@ -248,9 +248,7 @@ export default class LearningTasks extends React.Component {
                             <br/>
                             Description:
                             <br/>
-                            {Parse(task.description)}
-                            <br/>
-                            <br/>
+                            {task.description !== null ? <>{Parse(task.description)}<br/></> : <br/>}
                             Attachments: {task.attachments === "None" ? "None" : null}
                             {task.attachments !== "None" ? task.attachments.map((attachment, index) => 
                                 <div key={index}>
