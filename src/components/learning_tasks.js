@@ -207,7 +207,7 @@ export default class LearningTasks extends React.Component {
                                                 {task.name}
                                               </strong>
                                             <small>
-                                                Due by {new Date(task.individual_due_date).toLocaleDateString("en-US", this.config.options)}
+                                                Due by {new Date(task.due_date).toLocaleDateString("en-US", this.config.options)}
                                               </small>
                                         </div>
                                         <div className="d-flex w-100 align-items-center justify-content-between">
@@ -243,20 +243,17 @@ export default class LearningTasks extends React.Component {
                             <br/>
                             Submission status: {task.submission_status}
                             <br/>
-                            Due date: {new Date(task.individual_due_date).toLocaleDateString("en-US", this.config.options)}
+                            Due date: {new Date(task.due_date).toLocaleDateString("en-US", this.config.options)}
                             <br/>
                             <br/>
-                            Description:
-                            <br/>
-                            {task.description !== null ? <>{Parse(task.description)}<br/></> : <br/>}
-                            Attachments: {task.attachments === "None" ? "None" : null}
-                            {task.attachments !== "None" ? task.attachments.map((attachment, index) => 
+                            {task.description !== null ? <>Description: {Parse(task.description)}<br/></> : <br/>}
+                            Attachments: {task.attachments === null ? <>None<br/></> : task.attachments.map((attachment, index) => 
                                 <div key={index}>
                                     <a href={attachment.link}>{attachment.name}</a>
                                     <br/>
                                 </div>
-                                ) : <br/>}
-                            Submissions: {task.submissions === "None" ? "None" : task.submissions.map((submission, index) => (
+                                )}
+                            Submissions: {task.submissions === null ? "None" : task.submissions.map((submission, index) => (
                                 <div key={index}>
                                     <a href={submission.link}>{submission.name}</a>
                                     <br/>
@@ -300,11 +297,11 @@ export default class LearningTasks extends React.Component {
         if (sorts.date_sort === true) {
             if (sorts.date_sort_type === 0) {
                 tasks = tasks.sort((a,b) => {
-                    return (a.individual_due_date < b.individual_due_date) - (a.individual_due_date > b.individual_due_date)
+                    return (a.due_date < b.due_date) - (a.due_date > b._due_date)
                 })
             } else {
                 tasks = tasks.sort((a,b) => {
-                    return (a.individual_due_date > b.individual_due_date) - (a.individual_due_date < b.individual_due_date)
+                    return (a.due_date > b.due_date) - (a.due_date < b.due_date)
                 })
             }
         }
@@ -329,7 +326,7 @@ export default class LearningTasks extends React.Component {
                                 </div>
                                 <div className="d-flex w-100 align-items-center justify-content-between text-center">
                                     <div className="mb-1">
-                                        Due by {new Date(task.individual_due_date).toLocaleDateString("en-us", this.config.options)}
+                                        Due by {new Date(task.due_date).toLocaleDateString("en-us", this.config.options)}
                                     </div>
                                 </div> 
                         </ListGroup.Item>
@@ -350,36 +347,26 @@ export default class LearningTasks extends React.Component {
                         <Offcanvas.Title>{task.name}</Offcanvas.Title>
                         </Offcanvas.Header>
                         <Offcanvas.Body>
-                            Subject: {task.subject_name} - {task.subject_code}
+                        Subject: {task.subject_name} - {task.subject_code}
                             <br/>
                             Submission status: {task.submission_status}
                             <br/>
-                            Due date: {new Date(task.individual_due_date).toLocaleDateString("en-US", this.config.options)}
+                            Due date: {new Date(task.due_date).toLocaleDateString("en-US", this.config.options)}
                             <br/>
                             <br/>
-                            Description:
-                            <br/>
-                            {Parse(task.description)}
-                            <br/>
-                            <br/>
-                            Attachments: {task.attachments === "None" ? "None" : null}
-                            {task.attachments !== "None" ? task.attachments.map((attachment, index) => 
+                            {task.description !== null ? <>Description: {Parse(task.description)}<br/></> : <br/>}
+                            Attachments: {task.attachments === null ? <>None<br/></> : task.attachments.map((attachment, index) => 
                                 <div key={index}>
                                     <a href={attachment.link}>{attachment.name}</a>
                                     <br/>
                                 </div>
-                                ) : null}
-                            
-                            <br/>
-                            <br/>
-                            Submissions: {task.submissions === "None" ? "None" : null}
-                            {task.submissions !== "None" ? task.submissions.map((submission, index) => 
+                                )}
+                            Submissions: {task.submissions === null ? "None" : task.submissions.map((submission, index) => (
                                 <div key={index}>
                                     <a href={submission.link}>{submission.name}</a>
                                     <br/>
                                 </div>
-                            ) : null}
-
+                            ))}
                         </Offcanvas.Body>
                     </Offcanvas>
                 )}
