@@ -354,7 +354,7 @@ export default class LearningTasks extends React.Component {
                             Due date: {new Date(task.due_date).toLocaleDateString("en-US", this.config.options)}
                             <br/>
                             <br/>
-                            {task.description !== null ? <>Description: {Parse(task.description)}<br/></> : <br/>}
+                            Description: {task.description !== null ? <>{Parse(task.description)}<br/></> : <>No description <br/></>}
                             Attachments: {task.attachments === null ? <>None<br/></> : task.attachments.map((attachment, index) => 
                                 <div key={index}>
                                     <a href={attachment.link}>{attachment.name}</a>
