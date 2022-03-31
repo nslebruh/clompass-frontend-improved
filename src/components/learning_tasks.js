@@ -7,8 +7,8 @@ export default class LearningTasks extends React.Component {
         super(props);
         this.offcanvasList = {};
         this.data = []
-        for (var i = 0; props.data.length; i++) {
-            this.data.push(props.data[i])
+        for (var l = 0; l < props.data.length; l++) {
+            this.data.push(props.data[l])
         }
         this.config = {
             statuses: ["Pending", "On time", "Recieved late", "Overdue"], 
