@@ -355,13 +355,13 @@ export default class LearningTasks extends React.Component {
                             <br/>
                             <br/>
                             Description: {task.description !== null ? <>{Parse(task.description)}<br/></> : <>No description <br/></>}
-                            Attachments: {task.attachments === null ? <>None<br/></> : task.attachments.map((attachment, index) => 
+                            Attachments: {task.attachments === null || "None" ? <>None<br/></> : task.attachments.map((attachment, index) => 
                                 <div key={index}>
                                     <a href={attachment.link}>{attachment.name}</a>
                                     <br/>
                                 </div>
                                 )}
-                            Submissions: {task.submissions === null ? "None" : task.submissions.map((submission, index) => (
+                            Submissions: {task.submissions === null || "None" ? "None" : task.submissions.map((submission, index) => (
                                 <div key={index}>
                                     <a href={submission.link}>{submission.name}</a>
                                     <br/>
