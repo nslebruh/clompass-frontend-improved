@@ -21,9 +21,9 @@ export default class App extends React.Component {
     constructor(props) {
         super(props);
         if (localStorage.getItem('clompass-data') === null) {   
-            localStorage.setItem('clompass-data', '{"learning_tasks":{},"student_info":{},"schedule_url":"","subjects":{},"schedule_data:{}"}')
+            localStorage.setItem('clompass-data', '{"learning_tasks":{},"student_info":{},"schedule_url":"","subjects":{},"schedule_data":{}}')
         } else if (localStorage.getItem('clompass-data') === '{"learning_tasks":[],"student_info":{},"schedule_url":"subjects":[]}') {
-            localStorage.setItem('clompass-data', '{"learning_tasks":{},"student_info":{},"schedule_url":"","subjects":{},"schedule_data:{}"}')
+            localStorage.setItem('clompass-data', '{"learning_tasks":{},"student_info":{},"schedule_url":"","subjects":{},"schedule_data":{}"}')
         }
         this.state = {
             fetching_api_data: false,
@@ -127,7 +127,7 @@ export default class App extends React.Component {
             const ics = ICalParser.toJSON(data);
             console.log(ics)
             for (let i = 0; i < ics.events.length; i++) {
-              d[ics.events[i].uid] = {
+              d[ics.events[i].uid.split("@")[0]] = {
                 startDate: this.parseTime(ics.events[i].dtstart.value),
                 uid: ics.events[i].uid.split("@")[0],
                 formattedStart: this.parseTimeString(ics.events[i].dtstart.value),

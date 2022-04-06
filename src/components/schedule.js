@@ -7,9 +7,10 @@ export default class Home extends React.Component {
     constructor(props) {
         super(props);
         this.data = []
+        this.keys = Object.keys(props.data)
         if (props.data !== null && props.data !== undefined) {
-            for (var i = 0; i < Object.keys(props.data).length; i++) {
-                this.data.push(this.props[i])
+            for (var i = 0; i < this.keys.length; i++) {
+                this.data.push(props.data[this.keys[i]])
             }
         }
         console.log(this.data)
