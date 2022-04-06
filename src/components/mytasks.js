@@ -1,7 +1,7 @@
 import React from "react";
 import { Form, Button, ButtonGroup, } from "react-bootstrap";
 
-export default class extends React.Component {
+export default class MyTasks extends React.Component {
     constructor(props) {
         super(props)
         this.state = {

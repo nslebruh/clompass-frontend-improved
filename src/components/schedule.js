@@ -6,10 +6,18 @@ import { Scheduler, WeekView, Toolbar, DateNavigator, Appointments, TodayButton,
 export default class Home extends React.Component {
     constructor(props) {
         super(props);
+        this.data = []
+        if (props.data !== null && props.data !== undefined) {
+            for (var i = 0; i < Object.keys(props.data).length; i++) {
+                this.data.push(this.props[i])
+            }
+        }
+        console.log(this.data)
         this.state = {
             mounted: false,
-            data: this.props.data,
+            data: this.data,
             onlyDayView: this.props.onlyDayView,
+            current_date: new Date(),
         };
     }
     componentDidMount() {
@@ -18,7 +26,7 @@ export default class Home extends React.Component {
     render() {
         return (
             <Paper>
-                <Scheduler data={this.props.data} height={this.state.onlyDayView !== "true" ?  "630" : "640"}>
+                <Scheduler data={this.data} height={this.state.onlyDayView !== "true" ?  "auto" : "640"}>
                     <ViewState defaultCurrentDate={this.state.current_date}/>
                     {this.state.onlyDayView !== "true" ? <WeekView startDayHour={8} endDayHour={16}/> : null}
                     <DayView startDayHour={8} endDayHour={16}/>

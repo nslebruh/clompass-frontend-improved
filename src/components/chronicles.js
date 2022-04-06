@@ -4,17 +4,21 @@ import { ListGroup, Offcanvas } from "react-bootstrap";
 export default class Chronicles extends React.Component {
     constructor(props) {
         super(props);
-        this.data = props.data
+        this.data = []
+        this.keys = Object.keys(props.data)
         this.ids = {}
-        for (let i = 0; i<this.data.length; i++) {
-            this.ids[this.data[i].id] = false
+        for (var i = 0; i < this.keys.length; i++) {
+            this.ids[props.data[i].id] = false
+        }
+
+        for (i = 0; i < this.keys.length; i++) {
+            this.data.push(props.data[i])
         }
         this.state = {
             ids: this.ids
         }
     }
     handleOffcanvasChange = (id, state) => {
-        console.log(id, state)
         this.setState({ids: {
             ...this.state.ids,
             [id] : state

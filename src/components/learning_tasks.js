@@ -1,5 +1,5 @@
 import React from 'react';
-import {Offcanvas, Image, ListGroup, DropdownButton, Dropdown, Button, Stack} from 'react-bootstrap';
+import {Offcanvas, Image, ListGroup, DropdownButton, Dropdown, Button, Stack, Container} from 'react-bootstrap';
 import Parse from 'html-react-parser';
 
 export default class LearningTasks extends React.Component {
@@ -7,12 +7,13 @@ export default class LearningTasks extends React.Component {
         super(props);
         this.offcanvasList = {};
         this.data = []
-        for (var l = 0; l < props.data.length; l++) {
-            this.data.push(props.data[l])
+        this.keys = Object.keys(props.data)
+        for (var l = 0; l < this.keys.length; l++) {
+            this.data.push(props.data[this.keys[l]])
         }
         this.config = {
             statuses: ["Pending", "On time", "Recieved late", "Overdue"], 
-            types: ["cat ", "pt", "hw"], 
+            types: ["cat ", "pt", "hw", "sac"], 
             options: {weekday: "long", year: 'numeric', month: 'long', day: 'numeric', hour: "numeric", minute: "2-digit"},
             classes: [],
             renderType: props.renderType,
@@ -27,19 +28,19 @@ export default class LearningTasks extends React.Component {
         for (var i = 0; i < props.data.length; i++) {
             this.offcanvasList[props.data[i].id] = false;
         }
-        for (i = 0; i < props.data.length; i++) {
-            if (this.config.classes.includes(props.data[i].subject_code) === false) {
-                this.config.classes.push(props.data[i].subject_code);
+        for (i = 0; i < this.keys.length; i++) {
+            if (this.config.classes.includes(props.data[this.keys[i]].subject_code) === false) {
+                this.config.classes.push(props.data[this.keys[i]].subject_code);
             }
         }
-        for (i = 0; i < this.props.data.length; i++) {
-            if (props.data[i].submission_status === "Overdue") {
+        for (i = 0; i < this.keys.length; i++) {
+            if (props.data[this.keys[i]].submission_status === "Overdue") {
                 this.config.status_amounts.overdue++
-            } else if (props.data[i].submission_status === "Pending") {
+            } else if (props.data[this.keys[i]].submission_status === "Pending") {
                 this.config.status_amounts.pending++
-            } else if (props.data[i].submission_status === "On time") {
+            } else if (props.data[this.keys[i]].submission_status === "On time") {
                 this.config.status_amounts.ontime++
-            } else if (props.data[i].submission_status === "Recieved late") {
+            } else if (props.data[this.keys[i]].submission_status === "Recieved late") {
                 this.config.status_amounts.late++
             }
         }
@@ -156,17 +157,17 @@ export default class LearningTasks extends React.Component {
     }
 
     handleOffcanvasChange = (id, change) => {
-        this.setState(prevState => ({
-            offcanvasList: {                   
-                ...prevState.offcanvasList,   
-                [id]: change      
+        this.setState({
+            offcanvasList: {                      
+                [id]: change
             }
-        }))
+        })      
+            
     }
     renderTasks = () => {
         let tasks = this.sortTasks(this.state.sorts, this.state.data);
         return (
-            <div className="container">
+            <Container>
                 {`You currently have ${this.config.status_amounts.overdue} overdue learning tasks`}
                 <br/>
                 {`You currently have ${this.config.status_amounts.late} late learning tasks`}
@@ -229,13 +230,13 @@ export default class LearningTasks extends React.Component {
                             ))}
                         </ListGroup>
                 }
-            </div>
+            </Container>
         )
     }
     renderOffcanvas = () => {
         let tasks = this.state.data;
         return (
-            <div>
+            <>
                 {tasks.map((task, index) => 
                     <Offcanvas show={this.state.offcanvasList[task.id]} onHide={() => this.handleOffcanvasChange(task.id, false)} key={index}>
                     <Offcanvas.Header closeButton>
@@ -265,7 +266,7 @@ export default class LearningTasks extends React.Component {
                     </Offcanvas.Body>
                 </Offcanvas>
                 )}
-            </div>
+            </>
         )
     }
     sortTasks = (sorts, data) => {
@@ -318,7 +319,7 @@ export default class LearningTasks extends React.Component {
             return i.submission_status === "Overdue" 
         })
         return (
-            <div>
+            <>
                 <ListGroup variant="flush" className="border-bottom scrollarea">
                     {tasks.map((task, index) =>
                         <ListGroup.Item as="button" action onClick={() => this.handleOffcanvasChange(task.id, true)} className="lh-tight" key={index}>
@@ -335,7 +336,7 @@ export default class LearningTasks extends React.Component {
                         </ListGroup.Item>
                                 )}
                 </ListGroup>
-            </div>
+            </>
         )
     }
     renderOverdueOffcanvas = () => {
@@ -343,7 +344,7 @@ export default class LearningTasks extends React.Component {
             return i.submission_status === "Overdue"
         })
         return (
-            <div>
+            <>
                 {tasks.map((task, index) => 
                     <Offcanvas show={this.state.offcanvasList[task.id]} onHide={() => this.handleOffcanvasChange(task.id, false)} key={index}>
                         <Offcanvas.Header closeButton>
@@ -373,15 +374,15 @@ export default class LearningTasks extends React.Component {
                         </Offcanvas.Body>
                     </Offcanvas>
                 )}
-            </div>
+            </>
         ) 
     }
     render() {
         return (
-            <div>
+            <>
                 {this.config.renderType === "overdue" ? this.renderOverdueTasks() : this.renderTasks()}
                 {this.config.renderType === "overdue" ? this.renderOverdueOffcanvas() : this.renderOffcanvas()}
-            </div>
+            </>
         )
     }
 }

@@ -1,6 +1,6 @@
 import React from "react";
 import {useParams, useNavigate} from "react-router-dom"
-import parse from "html-react-parser"
+//import parse from "html-react-parser"
 import { Container, Col, Row, ListGroup, Stack } from "react-bootstrap"
 const withRouter = WrappedComponent => props => {
     const params = useParams();
@@ -19,50 +19,13 @@ class Subject extends React.Component {
     constructor(props) {
         super(props)
         this.subject = null
-        // return object of cookies
-        if (this.props.data !== null) {
-            for (let j = 0; j<this.props.data.length; j++) {
-                if (this.props.data[j].school_id === this.props.params.subjectCode) {
-                    this.subject = this.props.data[j]
-                }
+        if (this.props.data !== null && this.props.params !== null) {
+            if (this.props.params in this.props.data) {
+                this.subject = this.props.data[this.props.params]
             }
-            this.current_lesson_plan_key = this.subject.lessons.filter(lesson => lesson.end >= new Date().getTime())[0].key
-            console.log(this.current_lesson_plan_key)
         }
-        this.number = 0;
-        this.state = {
-            current_lesson_plan_key: this.props.data !== null && this.subject !== null ? this.current_lesson_plan : null,
-            current_lesson_plan: null,
-            fetching_lesson_plan: false
-        }
-    }
-    
-    renderLessonPlan = async (key) => {
-        this.number++
-        if (this.number > 1) {
-            return
-        }
-        let lesson_plan = this.subject.lessons[key].plan
-        console.log(lesson_plan)
-        
-        if (lesson_plan === null) {
-            this.number = 0;
-            this.setState({current_lesson_plan: "No lesson plan", fetching_lesson_plan: false})
-            return
-        }
-        let response = await fetch("http://localhost:3001/DownloadFile?sessionstate=readonly&id=ee4b9151-14a8-4bf2-b15f-80f203c013b3&nodeId=176281");
-        let blob = await response.blob()
-        let html = await blob.text()
-        console.log(html)
-        let dom = parse(html)
-        this.number = 0
-        this.setState({current_lesson_plan: dom, fetching_lesson_plan: false})
-        return
     }
     render() {
-        if (this.state.fetching_lesson_plan === true && this.number === 0) {
-            this.renderLessonPlan(this.state.current_lesson_plan_key)
-        }
         return (
             <>
                 {this.subject === null

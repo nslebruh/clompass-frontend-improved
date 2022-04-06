@@ -1,14 +1,15 @@
 import React from "react";
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Routes, Route, } from "react-router-dom";
-import { Navbar, Nav, Form, Button, Offcanvas, Image, Container, Row, Col, Spinner, Stack } from 'react-bootstrap';
+import { Navbar, Nav, Form, Button, Offcanvas, Image, Row, Col, Spinner, } from 'react-bootstrap';
 import { LinkContainer } from "react-router-bootstrap";
 import "./scss/app.scss"
 import ICalParser from 'ical-js-parser';
 import {io} from "socket.io-client"
 
 import PageNotFound from "./components/page_not_found.js"
-import LearningTasks from "./components/learning_tasks.js";
+//import LearningTasks from "./components/learning_tasks.js";
+import LearningTasks from "./components/new_learning_tasks";
 import Schedule from "./components/schedule.js";
 import StudentInfo from "./components/student_info.js";
 import MyTasks from "./components/mytasks.js"
@@ -19,28 +20,32 @@ import Error from "./components/error.js"
 export default class App extends React.Component {
     constructor(props) {
         super(props);
-        console.log(localStorage.getItem("clompass-data"))
         if (localStorage.getItem('clompass-data') === null) {   
-          localStorage.setItem('clompass-data', '{"learning_tasks":[],"student_info":{},"schedule_url":"","subjects":[], "subjects": []}')
+            localStorage.setItem('clompass-data', '{"learning_tasks":{},"student_info":{},"schedule_url":"","subjects":{},"schedule_data:{}"}')
+        } else if (localStorage.getItem('clompass-data') === '{"learning_tasks":[],"student_info":{},"schedule_url":"subjects":[]}') {
+            localStorage.setItem('clompass-data', '{"learning_tasks":{},"student_info":{},"schedule_url":"","subjects":{},"schedule_data:{}"}')
         }
         this.state = {
             fetching_api_data: false,
-            api_message: [{timestamp: new Date().toISOString(), message: "lmao", status_code: 200}],
+            api_message: [],
+            year: null,
             username: '',
             api_fetch_error: null,
             password: '',
             update_data_page: false,
             get_type: "learningtasks",
             data: {
+                schedule_data: JSON.parse(localStorage.getItem('clompass-data')).schedule_data !== {} ? JSON.parse(localStorage.getItem('clompass-data')).schedule_data : {},
                 student_info: JSON.parse(localStorage.getItem('clompass-data')).student_info !== {} ? JSON.parse(localStorage.getItem('clompass-data')).student_info : {},
-                learning_tasks: JSON.parse(localStorage.getItem('clompass-data')).learning_tasks ? JSON.parse(localStorage.getItem('clompass-data')).learning_tasks : [],
-                schedule_url: JSON.parse(localStorage.getItem('clompass-data')).schedule_url ? JSON.parse(localStorage.getItem('clompass-data')).schedule_url : '',
-                subjects: JSON.parse(localStorage.getItem('clompass-data')).subjects ? JSON.parse(localStorage.getItem('clompass-data')).subjects : [],
+                learning_tasks: JSON.parse(localStorage.getItem('clompass-data')).learning_tasks !== {} ? JSON.parse(localStorage.getItem('clompass-data')).learning_tasks : {},
+                schedule_url: JSON.parse(localStorage.getItem('clompass-data')).schedule_url !== "" ? JSON.parse(localStorage.getItem('clompass-data')).schedule_url : '',
+                subjects: JSON.parse(localStorage.getItem('clompass-data')).subjects !== {} ? JSON.parse(localStorage.getItem('clompass-data')).subjects : {},
             },
-            schedule_data: [],
-            time: new Date(),
+            
         };
         this.ws = io("https://api.clompass.com/get", {transports: ["websocket"]})
+        this.subjects = this.state.data.subjects !== {} ? Object.keys(this.state.data.subjects) : null
+        this.years = ["2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"]
     }
     async componentDidMount() {
         console.log("component mounted")
@@ -57,12 +62,20 @@ export default class App extends React.Component {
         })
         this.ws.on("data", (status_code, timestamp, message, response_type, response_data) => {
             console.log(status_code, message, response_type)
+            console.log(response_data)
+            let data;
+            if (response_type === "learning_tasks") {
+                data = {...this.state.data.learning_tasks, ...response_data}
+            } else {
+                data = response_data
+            }
+            
             this.setState({
                 api_message: [{status_code: status_code, message: message, timestamp: timestamp}],
                 fetching_api_data: false,
                 data: {
                     ...this.state.data,
-                [response_type]: response_data
+                [response_type]: data
                 }
             })
             return
@@ -71,13 +84,30 @@ export default class App extends React.Component {
             console.log(status_code, message, error)
             this.setState({api_message: [{timestamp: timestamp, status_code: status_code, message: `${message}: ${error}`}], api_fetch_error: error, fetching_api_data: false})
         })
-        this.timer = setInterval(() => this.tick(), 1000)
+        this.ws.on("lesson_plan", (lesson_plan_object) => {
+            this.setState({
+                data: {
+                    ...this.state.data,
+                    subjects: {
+                        ...this.state.data.subjects,
+                        [lesson_plan_object.subject_id]: {
+                            lessons: {
+                                ...this.state.data.subjects[lesson_plan_object.subject_id].lessons,
+                                [lesson_plan_object.node_id]: {
+                                    ...this.state.data.subjects[lesson_plan_object.subject_id].lessons[lesson_plan_object.node_id],
+                                    lesson_plan: lesson_plan_object.plan
+
+                                }
+                            }
+                        }
+                    }
+                }
+            })
+        })
         if (this.state.data.schedule_url !== "") {
-            this.fetchSchedule(this.state.data.schedule_url)
+            await this.fetchSchedule(this.state.data.schedule_url)
         }
         return
-        
-
     }
     componentWillUnmount() {
         clearInterval(this.timer);
@@ -90,26 +120,33 @@ export default class App extends React.Component {
       }
     fetchSchedule = async (url) => {
         const response = await fetch(url)
-        const d = [];
+        let d = {};
         try {
             let data = await response.blob();
-        data = await data.text();
-        const ics = ICalParser.toJSON(data);
-        for (let i = 0; i < ics.events.length; i++) {
-          d.push({
-            startDate: this.parseTime(ics.events[i].dtstart.value),
-            formattedStart: this.parseTimeString(ics.events[i].dtstart.value),
-            endDate: this.parseTime(ics.events[i].dtend.value),
-            formattedEnd: this.parseTimeString(ics.events[i].dtend.value),
-            title: ics.events[i].summary + ' - ' + ics.events[i].location + ' - ' + ics.events[i].description.split(' : ')[1],
-          })
-        }
+            data = await data.text();
+            const ics = ICalParser.toJSON(data);
+            console.log(ics)
+            for (let i = 0; i < ics.events.length; i++) {
+              d[ics.events[i].uid] = {
+                startDate: this.parseTime(ics.events[i].dtstart.value),
+                uid: ics.events[i].uid.split("@")[0],
+                formattedStart: this.parseTimeString(ics.events[i].dtstart.value),
+                endDate: this.parseTime(ics.events[i].dtend.value),
+                formattedEnd: this.parseTimeString(ics.events[i].dtend.value),
+                title: ics.events[i].summary + ' - ' + ics.events[i].location + ' - ' + ics.events[i].description.split(' : ')[1],
+              }
+            }
         } catch (error) {
             console.log(error)
         }
         
         this.setState({
-            schedule_data: d,
+            data: {
+                ...this.state.data, 
+                schedule_data: {
+                    ...this.state.data.schedule_data, ...d
+                }
+            } 
         })
     }
     parseTime(string) {
@@ -144,7 +181,7 @@ export default class App extends React.Component {
         console.log(JSON.stringify(data))
         localStorage.setItem('clompass-data', JSON.stringify(data))
     }
-    navbar() {
+    navbar = () => {
         return (
             <>
             <Navbar bg="dark" variant="dark" expand="lg">
@@ -172,16 +209,27 @@ export default class App extends React.Component {
                         </LinkContainer>
                         <Nav.Link onClick={() => this.setState({update_data_page: true})}>Update data</Nav.Link>
                     </Nav>
-                    <Navbar.Text className="justify-content-end allign-right" >{this.state.time.toLocaleTimeString("au-en", {weekday: "long", year: 'numeric', month: 'long', day: 'numeric', hour: "numeric", minute: "2-digit", second: "numeric"})}</Navbar.Text>
                 </Navbar.Collapse>
             </Navbar>
         </>
      )     
     }
-    sendEmit = (type, username, password) => {
-        this.number++
-        this.setState({fetching_api_data: true})
-        this.ws.emit(type, username, password)
+    sendEmit = (type, username, password, year=null) => {
+        this.setState({fetching_api_data: true, api_message: [], api_fetch_error: null})
+        this.ws.emit(type, username, password, year)
+    }
+    sendLessonPlans = (subject) => {
+        
+        let lessons = {}
+        for (let x = 0; x < Object.keys(this.state.data.subjects[subject].lessons).length; x++) {
+            let data = this.state.data.subjects[subject].lessons[x]
+            if (data.plan !== null) {
+                if (!data.plan.string) {
+                    lessons[data.uuid] = data
+                }
+            }
+        }
+        this.ws.emit("lessonplans", lessons)
     }
     update_data_page() {
         return (
@@ -199,33 +247,35 @@ export default class App extends React.Component {
                             <Form.Label>Input Password</Form.Label>
                             <Form.Control type="password" placeholder="password" name="password" id="password" onChange={(event) => this.setState({[event.target.name]: event.target.value})} />
                             <Button type="button" onClick={() => this.setState({get_type: "learningtasks"})}>learning tasks {this.state.get_type === "learningtasks" ? "tick" : null}</Button>
+                            {this.state.get_type === "learningtasks" ? <><br/>{this.years.map((year, index) => (
+                                <Button key={index} type="button" onClick={() => this.setState({year: year})}>{year} {this.state.year === year ? "tick" : null}</Button>
+                            ))}<br/></> : null}
                             <Button type="button" onClick={() => this.setState({get_type: "studentinfo"})}>Student info {this.state.get_type === "studentinfo" ? "tick" : null}</Button>
                             <Button type="button" onClick={() => this.setState({get_type: "schedule"})}>Schedule {this.state.get_type === "schedule" ? "tick" : null}</Button>
                             <Button type="button" onClick={() => this.setState({get_type: "subjects"})}>Subjects {this.state.get_type === "subjects" ? "tick" : null}</Button>
                             <br/>
-                            {this.state.fetching_api_data ? <Button disabled><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true"/></Button> : <Button type="button" onClick={() => this.sendEmit(this.state.get_type, this.state.username, this.state.password)}>Get data</Button>}
+                            {this.state.fetching_api_data ? <Button disabled><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true"/></Button> : <Button type="button" onClick={() => this.sendEmit(this.state.get_type, this.state.username, this.state.password, this.state.year)}>Get data</Button>}
                         </Form>
+                        
+                        
+
+                        
+                        {this.subjects === null 
+                            ?   "no subject data" 
+                            :   <Form>
+                                    <Form.Label>Choose subject</Form.Label>
+                                    {this.subjects.map((subject, index) => (
+                                        <Button key={index} type="button" onClick={() => this.setState({lesson_plan_subject: subject})}>{subject}</Button>
+                                    ))}
+                                    <Button type="button" onClick={() => this.sendLessonPlans(this.state.subject)}></Button>
+                                </Form>
+                            }
                         {this.state.api_message.map((message, index) => (
                             <p key={index}>
                                 {message.timestamp}: {message.status_code} - {message.message}
                             </p>
                         ))}
                         {this.state.api_fetch_error ? <h1>Error: {this.state.api_fetch_error}</h1> : null}
-                        {/* <Form>
-                                <Form.Label>Input Username</Form.Label>
-                                <Form.Control type='text' placeholder='Username' name="username" id='username' onChange={(event) => this.setState({[event.target.name]: event.target.value})}></Form.Control>
-                                <br/>
-                                <Form.Label>Input Password</Form.Label>
-                                <Form.Control type='password' placeholder='Password' name="password" id='password' onChange={(event) => this.setState({[event.target.name]: event.target.value})}></Form.Control>
-                                <br/>
-                                <Form.Label>Input Year</Form.Label>
-                                <Form.Control type='text' placeholder='2022' name="year" id="year" onChange={(event) => this.setState({[event.target.name]: event.target.value})}></Form.Control>
-                                <Button onClick={() => this.fetchApi()}>Get API data</Button>
-                                <br/>
-                                <Button onClick={() => this.changeTF(this.state.learning_tasks, "learning_tasks")}>Learning tasks: {this.state.learning_tasks}</Button> 
-                                <Button onClick={() => this.changeTF(this.state.student_info, "student_info")}>Student info: {this.state.student_info}</Button> 
-                                <Button onClick={() => this.saveData()}>Save new data</Button>
-                            </Form> */}
                     </Offcanvas.Body>
                 </Offcanvas>
             </>
@@ -237,7 +287,7 @@ export default class App extends React.Component {
                 <Row>
                 <Col className="text-center">
                     <h1>Today's Schedule</h1>
-                    <Schedule onlyDayView="true" data={this.state.schedule_data}/>
+                    <Schedule onlyDayView="true" data={this.state.data.schedule_data}/>
                   </Col>
                   <Col className="text-center">
                     <h1>Overdue learning tasks</h1> 
@@ -260,7 +310,7 @@ export default class App extends React.Component {
                 <Routes>
                     <Route path="/" element={this.dashboard()} />
                     <Route path="/learning-tasks" element={<LearningTasks data={this.state.data.learning_tasks}/>} />
-                    <Route path="/schedule" element={<Schedule data={this.state.schedule_data} />} />
+                    <Route path="/schedule" element={<Schedule data={this.state.data.schedule_data} />} />
                     <Route path="/student" element={<StudentInfo data={this.state.data.student_info}/>} />
                     <Route path="/subjects" element={<Subjects data={this.state.data.subjects}/>}/>
                     <Route path="/subject/:subjectCode" element={<Subject data={this.state.data.subjects}/>} />
