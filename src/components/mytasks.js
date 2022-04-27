@@ -14,10 +14,6 @@ export default class MyTasks extends React.Component {
         return (
             <>
             <h1>
-                <Form>
-                    <Form.Label>Input task message</Form.Label>
-                    <Form.Control type="text" placeholder="text" onChange={(e) => this.setState({new_task_message: e.target.value})}/>
-                </Form>
                 My Tasks
             </h1>
             </>

@@ -10,12 +10,14 @@ import {io} from "socket.io-client"
 import PageNotFound from "./components/page_not_found.js"
 //import LearningTasks from "./components/learning_tasks.js";
 import LearningTasks from "./components/new_learning_tasks";
-import Schedule from "./components/schedule.js";
+//import Schedule from "./components/schedule.js";
+import Schedule from "./components/new_schedule.js";
 import StudentInfo from "./components/student_info.js";
 import MyTasks from "./components/mytasks.js"
 import Subjects from "./components/subjects.js"
 import Subject from "./components/subject.js"
 import Error from "./components/error.js"
+import Settings from "./components/settings.js"
 
 export default class App extends React.Component {
     constructor(props) {
@@ -28,7 +30,8 @@ export default class App extends React.Component {
         this.state = {
             fetching_api_data: false,
             api_message: [],
-            year: null,
+            month: 2,
+            year: new Date().getFullYear(), 
             username: '',
             api_fetch_error: null,
             password: '',
@@ -41,11 +44,19 @@ export default class App extends React.Component {
                 schedule_url: JSON.parse(localStorage.getItem('clompass-data')).schedule_url !== "" ? JSON.parse(localStorage.getItem('clompass-data')).schedule_url : '',
                 subjects: JSON.parse(localStorage.getItem('clompass-data')).subjects !== {} ? JSON.parse(localStorage.getItem('clompass-data')).subjects : {},
             },
+            settings: {},
             
         };
-        this.ws = io("https://api.clompass.com/get", {transports: ["websocket"]})
+
+        //this.ws = io("https://api.clompass.com/get", {transports: ["websocket"]})
+        this.ws = io("http://localhost:3001/get", {transports: ["websocket"]})
         this.subjects = this.state.data.subjects !== {} ? Object.keys(this.state.data.subjects) : null
         this.years = ["2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"]
+    }
+    handleSingleStateChange = (key, value) => {
+        this.setState({
+            [key]: value
+        })
     }
     async componentDidMount() {
         console.log("component mounted")
@@ -64,8 +75,8 @@ export default class App extends React.Component {
             console.log(status_code, message, response_type)
             console.log(response_data)
             let data;
-            if (response_type === "learning_tasks") {
-                data = {...this.state.data.learning_tasks, ...response_data}
+            if (response_type === "learning_tasks" || response_type === "schedule_data") {
+                data = {...this.state.data[response_type], ...response_data}
             } else {
                 data = response_data
             }
@@ -130,10 +141,13 @@ export default class App extends React.Component {
               d[ics.events[i].uid.split("@")[0]] = {
                 startDate: this.parseTime(ics.events[i].dtstart.value),
                 uid: ics.events[i].uid.split("@")[0],
-                formattedStart: this.parseTimeString(ics.events[i].dtstart.value),
+                formattedStart: new Date(this.parseTime(ics.events[i].dtstart.value)).toLocaleTimeString("us-en", { hour: 'numeric', minute: 'numeric', hour12: true }),
                 endDate: this.parseTime(ics.events[i].dtend.value),
-                formattedEnd: this.parseTimeString(ics.events[i].dtend.value),
-                title: ics.events[i].summary + ' - ' + ics.events[i].location + ' - ' + ics.events[i].description.split(' : ')[1],
+                formattedEnd: new Date(this.parseTime(ics.events[i].dtend.value)).toLocaleTimeString("us-en", { hour: 'numeric', minute: 'numeric', hour12: true }),
+                subject: ics.events[i].summary,
+                room: ics.events[i].location !== "" ? ics.events[i].location : "No room",
+                teacher: ics.events[i].description.split(' : ')[1],
+                text: ics.events[i].summary + ' - ' + (ics.events[i].location !== "" ? ics.events[i].location : "No room") + ' - ' + ics.events[i].description.split(' : ')[1],
               }
             }
         } catch (error) {
@@ -214,12 +228,11 @@ export default class App extends React.Component {
         </>
      )     
     }
-    sendEmit = (type, username, password, year=null) => {
+    sendEmit = (type, username, password, year, month) => {
         this.setState({fetching_api_data: true, api_message: [], api_fetch_error: null})
-        this.ws.emit(type, username, password, year)
+        this.ws.emit(type, username, password, year, month)
     }
     sendLessonPlans = (subject) => {
-        
         let lessons = {}
         for (let x = 0; x < Object.keys(this.state.data.subjects[subject].lessons).length; x++) {
             let data = this.state.data.subjects[subject].lessons[x]
@@ -253,13 +266,11 @@ export default class App extends React.Component {
                             <Button type="button" onClick={() => this.setState({get_type: "studentinfo"})}>Student info {this.state.get_type === "studentinfo" ? "tick" : null}</Button>
                             <Button type="button" onClick={() => this.setState({get_type: "schedule"})}>Schedule {this.state.get_type === "schedule" ? "tick" : null}</Button>
                             <Button type="button" onClick={() => this.setState({get_type: "subjects"})}>Subjects {this.state.get_type === "subjects" ? "tick" : null}</Button>
-                            <br/>
-                            {this.state.fetching_api_data ? <Button disabled><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true"/></Button> : <Button type="button" onClick={() => this.sendEmit(this.state.get_type, this.state.username, this.state.password, this.state.year)}>Get data</Button>}
-                        </Form>
-                        
-                        
+                            <Button type="button" onClick={() => this.setState({get_type: "getcalender"})}>Getcalender {this.state.get_type === "getcalender" ? "tick" : null}</Button>
 
-                        
+                            <br/>
+                            {this.state.fetching_api_data ? <Button disabled><Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true"/></Button> : <Button type="button" onClick={() => this.sendEmit(this.state.get_type, this.state.username, this.state.password, this.state.year, this.state.month)}>Get data</Button>}
+                        </Form>
                         {this.subjects === null 
                             ?   "no subject data" 
                             :   <Form>
@@ -315,6 +326,7 @@ export default class App extends React.Component {
                     <Route path="/subjects" element={<Subjects data={this.state.data.subjects}/>}/>
                     <Route path="/subject/:subjectCode" element={<Subject data={this.state.data.subjects}/>} />
                     <Route path="/error" element={<Error />} />
+                    <Route path="/settings" element={<Settings setState={this.handleSingleStateChange}/>} />
                     <Route path="*" element={<PageNotFound />} />
                 </Routes>
             </Router>

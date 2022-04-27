@@ -1,7 +1,7 @@
 import React from "react";
 import Paper from '@mui/material/Paper';
 import { ViewState } from '@devexpress/dx-react-scheduler';
-import { Scheduler, WeekView, Toolbar, DateNavigator, Appointments, TodayButton, DayView, MonthView, ViewSwitcher } from '@devexpress/dx-react-scheduler-material-ui';
+import { Scheduler, WeekView, Toolbar, DateNavigator, Appointments, TodayButton, DayView, MonthView, ViewSwitcher, } from '@devexpress/dx-react-scheduler-material-ui';
 
 export default class Home extends React.Component {
     constructor(props) {

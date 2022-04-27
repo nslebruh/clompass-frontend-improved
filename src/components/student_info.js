@@ -24,7 +24,7 @@ export default class Home extends React.Component {
                     <br/>
                     id: {this.props.data.school_id}
                     <br/>
-                    <img src={this.props.data.image} />
+                    <img src={this.props.data.image} alt={"this an img"}/>
                 </Col>
                 <Col>
                     <Chronicles data={this.data.chronicles}/>
